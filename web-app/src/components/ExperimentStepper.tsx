@@ -69,6 +69,7 @@ export function ExperimentStepper() {
             <div
               className={cn(
                 "w-10 h-10 rounded-full border-2 flex items-center justify-center",
+                "relative z-10 bg-white",
                 index <= currentStep
                   ? "border-blue-500 bg-blue-50 text-blue-600"
                   : "border-gray-200 text-gray-400"
@@ -94,6 +95,7 @@ export function ExperimentStepper() {
               <div
                 className={cn(
                   "absolute top-5 left-1/2 w-full h-0.5",
+                  "z-0",
                   index < currentStep ? "bg-blue-500" : "bg-gray-200"
                 )}
               ></div>
