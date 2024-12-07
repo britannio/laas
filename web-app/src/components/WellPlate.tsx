@@ -34,7 +34,6 @@ export const WellPlate = memo(({ wells, onWellClick }: WellPlateProps) => {
           Array.from({ length: 12 }, (_, col) => {
             const wellKey = `${row},${col}`;
             const well = wells[wellKey];
-            const isActive = activeWell?.x === col && activeWell?.y === row;
             const isOccupied = !!well?.color;
 
             return (
