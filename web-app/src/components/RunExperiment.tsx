@@ -32,6 +32,38 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="space-y-6">
+      {/* Controls moved to top */}
+      <div className="flex justify-between items-center">
+        <div className="flex space-x-4">
+          <button
+            onClick={onBack}
+            disabled={isRunning}
+            className={cn(
+              "px-4 py-2 rounded-lg font-medium",
+              isRunning
+                ? "bg-gray-100 text-gray-400"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            )}
+          >
+            Back
+          </button>
+          <ExperimentControls />
+        </div>
+        
+        <button
+          onClick={handleStartExperiment}
+          disabled={isRunning}
+          className={cn(
+            "px-4 py-2 rounded-lg font-medium",
+            isRunning
+              ? "bg-gray-100 text-gray-400"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          )}
+        >
+          {isRunning ? 'Running...' : 'Start Experiment'}
+        </button>
+      </div>
+
       {/* Status Overview */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-blue-50 p-4 rounded-lg">
@@ -63,48 +95,15 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         />
       </div>
       
-      {/* Progress and Controls */}
-      <div className="space-y-4">
-        {isRunning && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        )}
-        
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-4">
-            <button
-              onClick={onBack}
-              disabled={isRunning}
-              className={cn(
-                "px-4 py-2 rounded-lg font-medium",
-                isRunning
-                  ? "bg-gray-100 text-gray-400"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              )}
-            >
-              Back
-            </button>
-            <ExperimentControls />
-          </div>
-          
-          <button
-            onClick={handleStartExperiment}
-            disabled={isRunning}
-            className={cn(
-              "px-4 py-2 rounded-lg font-medium",
-              isRunning
-                ? "bg-gray-100 text-gray-400"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            )}
-          >
-            {isRunning ? 'Running...' : 'Start Experiment'}
-          </button>
+      {/* Progress bar */}
+      {isRunning && (
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
         </div>
-      </div>
+      )}
     </div>
   );
 }

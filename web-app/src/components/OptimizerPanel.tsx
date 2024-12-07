@@ -7,6 +7,8 @@ export function OptimizerPanel({ onNext, onBack }: { onNext: () => void; onBack:
 
   return (
     <div className="space-y-6">
+      {/* Navigation buttons moved to top */}
+
       <div className="grid grid-cols-2 gap-4">
         <button
           className={cn(
