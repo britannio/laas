@@ -1,3 +1,4 @@
+import React from 'react';
 import { useExperimentStore } from '../stores/experimentStore';
 import { useEquipmentStore } from '../stores/equipmentStore';
 import { EquipmentPanel } from './EquipmentPanel';
@@ -102,7 +103,9 @@ export function ExperimentStepper() {
       {/* Current Step Content */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         {steps[currentStep].component && (
-          <steps[currentStep].component />
+          <div>
+            {React.createElement(steps[currentStep].component)}
+          </div>
         )}
       </div>
     </div>
