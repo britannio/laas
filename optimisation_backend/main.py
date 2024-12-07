@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, Response, request
+from typing import Union, Tuple
 from bayes_opt import BayesOpt
 from model import VirtualLab
 from background_tasks import BackgroundTaskManager, Experiment
@@ -69,7 +70,7 @@ def get_experiment_status() -> Response:
 
 
 @app.route("/experiments/<experiment_id>/status", methods=["GET"])
-def get_experiment_status(experiment_id: str) -> Response:
+def get_experiment_status(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Get the status of a specific optimization experiment."""
     status = task_manager.get_experiment_status(experiment_id)
     if status is None:
@@ -77,7 +78,7 @@ def get_experiment_status(experiment_id: str) -> Response:
     return jsonify(status)
 
 @app.route("/experiments/<experiment_id>/cancel", methods=["POST"])
-def cancel_experiment(experiment_id: str) -> Response:
+def cancel_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Cancels the current experiment if it matches the given ID."""
     current_experiment = task_manager._current_experiment
     if not current_experiment or current_experiment.experiment_id != experiment_id:
