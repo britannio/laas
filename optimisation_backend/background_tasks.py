@@ -13,6 +13,7 @@ class Experiment:
     end_time: Optional[datetime] = None
     optimizer = None
     should_cancel: bool = False
+    thread: Optional[Thread] = None
 
 class BackgroundTaskManager:
     def __init__(self):
@@ -31,8 +32,11 @@ class BackgroundTaskManager:
             self._current_experiment.optimizer = optimizer
             self._current_experiment.status = "running"
             self._current_experiment.start_time = datetime.now()
-
-            Thread(target=self._run_optimization, args=(optimizer,), daemon=True).start()
+            
+            # Create and store the thread
+            thread = Thread(target=self._run_optimization, args=(optimizer,), daemon=True)
+            self._current_experiment.thread = thread
+            thread.start()
             return True
 
     def _run_optimization(self, optimizer):
@@ -51,14 +55,19 @@ class BackgroundTaskManager:
 
     def cancel_current_experiment(self) -> bool:
         """Cancels the current experiment if one exists."""
-        if not self._current_experiment: return False
-        self._current_experiment.should_cancel = True
-        return True
-        # with self._lock:
-            # if self._current_experiment and self._current_experiment.status == "running":
-                # self._current_experiment.should_cancel = True
-                # return True
-            # return False
+        with self._lock:
+            if not self._current_experiment:
+                return False
+                
+            self._current_experiment.should_cancel = True
+            
+            # Wait for thread to finish if it exists
+            if self._current_experiment.thread and self._current_experiment.thread.is_alive():
+                self._current_experiment.thread.join(timeout=1.0)  # Wait up to 1 second
+                
+            self._current_experiment.status = "cancelled"
+            self._current_experiment.end_time = datetime.now()
+            return True
 
     def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:
         if not self._current_experiment or self._current_experiment.experiment_id != experiment_id:
