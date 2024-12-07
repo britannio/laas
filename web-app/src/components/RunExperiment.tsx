@@ -103,28 +103,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         <button
           onClick={() => {
             if (isRunning) {
-              if (confirm('Are you sure you want to cancel the experiment?')) {
-                setIsRunning(false);
-                setStartTime(null);
-                setElapsedTime(0);
-                setActionLog(prev => [...prev, {
-                  timestamp: new Date(),
-                  type: 'place_droplets',
-                  position: { x: 0, y: 0 },
-                  status: 'cancelled'
-                }]);
-              }
+              handleCancelExperiment();
             } else {
-              setIsRunning(true);
-              setStartTime(new Date());
-              setActionLog([
-                {
-                  timestamp: new Date(),
-                  type: 'place_droplets',
-                  position: { x: 0, y: 0 },
-                  drops: [2, 1, 1]
-                }
-              ]);
+              handleStartExperiment();
             }
           }}
           className={cn(
