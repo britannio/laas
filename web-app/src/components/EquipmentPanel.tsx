@@ -57,7 +57,7 @@ export function EquipmentPanel({ onNext, onBack }: { onNext: () => void; onBack:
 
   return (
     <div className="space-y-4">
-      {/* Navigation buttons moved to top */}
+      {/* Navigation buttons at the top */}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {allEquipment.map((item) => (
