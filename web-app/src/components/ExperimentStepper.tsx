@@ -93,7 +93,7 @@ export function ExperimentStepper() {
                   "absolute top-5 left-1/2 w-full h-0.5",
                   index < currentStep ? "bg-blue-500" : "bg-gray-200"
                 )}
-              />
+              ></div>
             )}
           </div>
         ))}
