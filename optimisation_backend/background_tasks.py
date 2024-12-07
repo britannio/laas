@@ -1,4 +1,4 @@
-from multiprocessing import Process, Lock
+from multiprocessing import Process, Lock, Manager
 from typing import Optional, Dict, List, Any
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -14,27 +14,14 @@ class Experiment:
     optimizer = None
     should_cancel: bool = False
     process: Optional[Process] = None
-    action_log: List[Dict[str, Any]] = field(default_factory=list)
-
-    def add_action(self, action_type: str, data: Dict[str, Any]) -> None:
-        """Adds an action to the experiment log.
-        
-        Args:
-            action_type (str): Type of action (e.g., 'place', 'read')
-            data (Dict[str, Any]): Data associated with the action
-        """
-        self.action_log.append({
-            "type": action_type,
-            "data": data,
-            "experiment_id": self.experiment_id,
-            "timestamp": datetime.utcnow().isoformat() + "Z"
-        })
 
 class BackgroundTaskManager:
     def __init__(self):
         self._lock = Lock()
         self._current_experiment: Optional[Experiment] = None
         self._experiments: Dict[str, Experiment] = {}
+        self._manager = Manager()
+        self._shared_action_logs = self._manager.dict()  # Shared dictionary for action logs
 
     def start_experiment(self, experiment: Experiment, optimizer) -> bool:
         print('requesting lock')
@@ -49,6 +36,9 @@ class BackgroundTaskManager:
             self._current_experiment.optimizer = optimizer
             self._current_experiment.status = "running"
             self._current_experiment.start_time = datetime.now()
+            
+            # Initialize shared action log for this experiment
+            self._shared_action_logs[experiment.experiment_id] = self._manager.list()
 
             # Create and store the process
             process = Process(target=self._run_optimization, args=(optimizer,))
@@ -88,25 +78,31 @@ class BackgroundTaskManager:
 
     def get_action_log(self, experiment_id: str) -> Optional[List[Dict[str, Any]]]:
         """Gets the action log for a specific experiment."""
-        experiment = self._experiments.get(experiment_id)
-        if experiment is None:
+        if experiment_id not in self._shared_action_logs:
             print(f"Warning: Attempted to get action log for non-existent experiment {experiment_id}")
             return None
             
+        action_log = list(self._shared_action_logs[experiment_id])  # Convert to regular list
         print(f"Retrieving action log for experiment {experiment_id}")
-        print(f"Action log length: {len(experiment.action_log)}")
-        return experiment.action_log
+        print(f"Action log length: {len(action_log)}")
+        return action_log
 
     def add_action(self, experiment_id: str, action_type: str, data: Dict[str, Any]) -> bool:
         """Adds an action to an experiment's log."""
-        experiment = self._experiments.get(experiment_id)
-        if experiment is None:
+        if experiment_id not in self._shared_action_logs:
             print(f"Warning: Attempted to add action to non-existent experiment {experiment_id}")
             return False
             
-        experiment.add_action(action_type, data)
+        action = {
+            "type": action_type,
+            "data": data,
+            "experiment_id": experiment_id,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        }
+        
+        self._shared_action_logs[experiment_id].append(action)
         print(f"Added action to experiment {experiment_id}: {action_type}")
-        print(f"Current action log length: {len(experiment.action_log)}")
+        print(f"Current action log length: {len(self._shared_action_logs[experiment_id])}")
         return True
 
     def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:
