@@ -20,10 +20,13 @@ class BackgroundTaskManager:
         self._current_experiment: Optional[Experiment] = None
 
     def start_experiment(self, experiment: Experiment, optimizer) -> bool:
+        print('requesting lock')
         with self._lock:
+            print('got lock')
             # Cancel any existing experiment
             self.cancel_current_experiment()
-            
+            print('cancelled existing experiment')
+
             self._current_experiment = experiment
             self._current_experiment.optimizer = optimizer
             self._current_experiment.status = "running"
@@ -48,11 +51,14 @@ class BackgroundTaskManager:
 
     def cancel_current_experiment(self) -> bool:
         """Cancels the current experiment if one exists."""
-        with self._lock:
-            if self._current_experiment and self._current_experiment.status == "running":
-                self._current_experiment.should_cancel = True
-                return True
-            return False
+        if not self._current_experiment: return False
+        self._current_experiment.should_cancel = True
+        return True
+        # with self._lock:
+            # if self._current_experiment and self._current_experiment.status == "running":
+                # self._current_experiment.should_cancel = True
+                # return True
+            # return False
 
     def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:
         if not self._current_experiment or self._current_experiment.experiment_id != experiment_id:
