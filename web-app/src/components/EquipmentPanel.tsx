@@ -41,25 +41,18 @@ export function EquipmentPanel() {
                 "flex flex-col items-center justify-center text-center space-y-2",
                 isSelected
                   ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50',
-                equipmentItem?.status === 'busy' && 'border-yellow-500 bg-yellow-50',
-                equipmentItem?.status === 'error' && 'border-red-500 bg-red-50'
+                  : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
               )}
               onClick={() => toggleEquipment(item.type)}
             >
               <Icon className={cn(
                 "h-8 w-8",
-                isSelected ? 'text-blue-600' : 'text-gray-600',
-                equipmentItem?.status === 'busy' && 'text-yellow-600',
-                equipmentItem?.status === 'error' && 'text-red-600'
+                isSelected ? 'text-blue-600' : 'text-gray-600'
               )} />
               <div className="font-medium">{item.title}</div>
               <div className="text-sm text-gray-500">{item.description}</div>
-              {equipmentItem?.status === 'busy' && (
-                <div className="text-xs text-yellow-600 font-medium">Busy</div>
-              )}
-              {equipmentItem?.status === 'error' && (
-                <div className="text-xs text-red-600 font-medium">Error</div>
+              {isSelected && (
+                <div className="text-xs text-blue-600 font-medium">Selected</div>
               )}
             </button>
           );

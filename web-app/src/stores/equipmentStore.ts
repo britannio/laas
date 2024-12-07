@@ -41,6 +41,7 @@ export const useEquipmentStore = create<EquipmentState>((set) => ({
       ...state.equipment,
       [type]: {
         ...state.equipment[type],
+        // Simply toggle between selected (idle) and unselected (busy)
         status: state.equipment[type]?.status === 'idle' ? 'busy' : 'idle'
       }
     }
