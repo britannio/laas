@@ -11,6 +11,7 @@ class OptimizationTask:
     status: str = "pending"
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
+    optimizer = None
 
 class BackgroundTaskManager:
     def __init__(self):
@@ -23,6 +24,7 @@ class BackgroundTaskManager:
                 return False
                 
             self._current_task = task
+            self._current_task.optimizer = optimizer
             self._current_task.status = "running"
             self._current_task.start_time = datetime.now()
             
