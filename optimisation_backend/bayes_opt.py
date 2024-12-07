@@ -11,7 +11,7 @@ class BayesOpt:
     """Bayesian Optimization class for optimizing dye combinations."""
 
     def __init__(
-        self, model, target: list[int], n_calls: int, space: list[Dimension] = None
+        self, model, target: list[int], n_calls: int, space: list[Dimension] | None = None
     ):
         """Initializes the BayesOpt class with the given parameters.
 

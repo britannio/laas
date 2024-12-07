@@ -18,8 +18,8 @@ model = VirtualLab()
 task_manager = BackgroundTaskManager()
 
 
-@app.route("/experiments/<experiment_id>/optimize", methods=["POST"])
-def start_experiment(experiment_id: str) -> Response:
+@app.route("/experiments/<experiment_id>/start_experiment", methods=["POST"])
+def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Starts a Bayesian Optimization experiment with default parameters.
 
     Returns:
@@ -28,8 +28,10 @@ def start_experiment(experiment_id: str) -> Response:
     bo = BayesOpt(model, target=[90, 10, 130], n_calls=20, space=None)
     experiment = Experiment(experiment_id=experiment_id, target=(90, 10, 130), n_calls=20)
 
+    print('starting experiment in background')
     task_manager.start_experiment(experiment, bo)
-    return jsonify({"message": "Optimization started", "experiment_id": experiment_id})
+    print('experiment started')
+    return jsonify({"message": "Optimization started", "experiment_id": experiment_id}), 200
 
 @app.route("/experiments/<experiment_id>/optimize/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["POST"])
 def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_calls: int) -> Response:
@@ -86,12 +88,8 @@ def get_experiment_status(experiment_id: str) -> Union[Response, Tuple[Response,
         return jsonify({"error": "Experiment not found"}), 404
     return jsonify(status)
 
-@app.route("/experiments/<experiment_id>/cancel", methods=["POST"])
-def cancel_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
-    """Cancels the current experiment if it matches the given ID."""
-    current_experiment = task_manager._current_experiment
-    if not current_experiment or current_experiment.experiment_id != experiment_id:
-        return jsonify({"error": "Experiment not found"}), 404
+@app.route("/cancel_experiment", methods=["POST"])
+def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
 
     if task_manager.cancel_current_experiment():
         return jsonify({"message": "Experiment cancelled successfully"})
