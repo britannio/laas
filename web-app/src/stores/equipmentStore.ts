@@ -8,6 +8,10 @@ interface Equipment {
   type: EquipmentType;
   name: string;
   status: EquipmentStatus;
+  gridSize?: { rows: number; cols: number };
+  dyeColors?: string[];
+  maxDrops?: number;
+  resolution?: string;
 }
 
 interface EquipmentState {
@@ -18,22 +22,26 @@ interface EquipmentState {
 export const useEquipmentStore = create<EquipmentState>((set) => ({
   equipment: {
     microplate: {
-      id: '1',
+      id: 'microplate',
       type: 'microplate',
       name: 'Microplate Reader',
       status: 'busy',
+      gridSize: { rows: 8, cols: 12 }
     },
     dyePump: {
-      id: '2',
+      id: 'dyePump',
       type: 'dyePump',
-      name: 'Dye Pump System',
+      name: 'Triple Dye Pump',
       status: 'busy',
+      dyeColors: ['#FF0000', '#00FF00', '#0000FF'],
+      maxDrops: 10
     },
     camera: {
-      id: '3',
+      id: 'camera',
       type: 'camera',
-      name: 'Imaging Camera',
+      name: 'Microplate Camera',
       status: 'busy',
+      resolution: '1920x1080'
     },
   },
   toggleEquipment: (type) => set((state) => ({
