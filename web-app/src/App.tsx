@@ -1,5 +1,5 @@
 import { useExperimentStore } from './stores/experimentStore';
-import { Objective } from './types/experiment';
+import { Objective, Optimizer, OptimizerType } from './types/experiment';
 import { BeakerIcon } from 'lucide-react';
 import { PlanExperiment } from './components/PlanExperiment';
 import { RunExperiment } from './components/RunExperiment';
@@ -9,6 +9,8 @@ function App() {
   const activeWell = useExperimentStore((state) => state.activeWell);
   const objective = useExperimentStore((state) => state.objective);
   const setObjective = useExperimentStore((state) => state.setObjective);
+  const optimizer = useExperimentStore((state) => state.optimizer);
+  const setOptimizer = useExperimentStore((state) => state.setOptimizer);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,6 +78,40 @@ function App() {
                         {objective.value || 50}%
                       </span>
                     </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Add the Optimizer section */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-6">Optimizer</h2>
+              <div className="space-y-4">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Select Optimization Method
+                  </label>
+                  <select 
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    value={optimizer?.type || 'bayesian'}
+                    onChange={(e) => {
+                      const type = e.target.value as OptimizerType;
+                      setOptimizer({ type });
+                    }}
+                  >
+                    <option value="bayesian">Bayesian Optimization</option>
+                    <option value="rsm" disabled>Response Surface Methodology (Coming Soon)</option>
+                    <option value="nelder-mead" disabled>Nelder-Mead Simplex (Coming Soon)</option>
+                    <option value="pso" disabled>Particle Swarm Optimization (Coming Soon)</option>
+                  </select>
+                </div>
+                
+                {optimizer?.type === 'bayesian' && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-md">
+                    <p className="text-sm text-blue-700">
+                      Using Bayesian optimization to efficiently search the parameter space 
+                      and find optimal dye combinations for your objective.
+                    </p>
                   </div>
                 )}
               </div>

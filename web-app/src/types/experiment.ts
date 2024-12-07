@@ -31,6 +31,12 @@ export interface WellData {
   }[];
 }
 
+export type OptimizerType = 'bayesian' | 'rsm' | 'nelder-mead' | 'pso';
+
+export interface Optimizer {
+  type: OptimizerType;
+}
+
 export interface Objective {
   type: 'targetSaturation' | 'targetIntensity';
   value?: number; // The target value to achieve
