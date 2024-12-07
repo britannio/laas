@@ -1,28 +1,36 @@
-from flask import Flask, jsonify, Response
+from flask import Flask, jsonify, Response, request
 from bayes_opt import BayesOpt
 from model import VirtualLab
+from background_tasks import BackgroundTaskManager, OptimizationTask
 
 app = Flask(__name__)
 model = VirtualLab()
+task_manager = BackgroundTaskManager()
 
 
-@app.route("/go", methods=["GET"])
+@app.route("/go", methods=["POST"])
 def go() -> Response:
-    """Runs the Bayesian Optimization with default parameters.
+    """Starts a Bayesian Optimization run with default parameters.
 
     Returns:
-        Response: A JSON response indicating the request was received.
+        Response: A JSON response with the run ID.
     """
+    run_id = request.json.get("run_id")
+    if not run_id:
+        return jsonify({"error": "run_id is required"}), 400
+
     bo = BayesOpt(model, target=[90, 10, 130], n_calls=20, space=None)
-    result = bo.run()
-    print(result.x)
+    task = OptimizationTask(run_id=run_id, target=(90, 10, 130), n_calls=20)
+    
+    if task_manager.start_task(task, bo):
+        return jsonify({"message": "Optimization started", "run_id": run_id})
+    else:
+        return jsonify({"error": "Another optimization is already running"}), 409
 
-    return jsonify({"message": "GET request received"})
 
-
-@app.route("/go_params/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["GET"])
+@app.route("/go_params/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["POST"])
 def go_params(r: int, g: int, b: int, n_calls: int) -> Response:
-    """Runs the Bayesian Optimization with specified parameters.
+    """Starts a Bayesian Optimization run with specified parameters.
 
     Args:
         r (int): Red target value.
@@ -31,13 +39,19 @@ def go_params(r: int, g: int, b: int, n_calls: int) -> Response:
         n_calls (int): Number of calls for the optimization.
 
     Returns:
-        Response: A JSON response indicating the request was received.
+        Response: A JSON response with the run ID.
     """
-    bo = BayesOpt(model, target=(r, g, b), n_calls=n_calls, space=None)
-    result = bo.run()
-    print(result.x)
+    run_id = request.json.get("run_id")
+    if not run_id:
+        return jsonify({"error": "run_id is required"}), 400
 
-    return jsonify({"message": "GET request received"})
+    bo = BayesOpt(model, target=(r, g, b), n_calls=n_calls, space=None)
+    task = OptimizationTask(run_id=run_id, target=(r, g, b), n_calls=n_calls)
+    
+    if task_manager.start_task(task, bo):
+        return jsonify({"message": "Optimization started", "run_id": run_id})
+    else:
+        return jsonify({"error": "Another optimization is already running"}), 409
 
 
 @app.route("/action_log", methods=["GET"])
@@ -76,6 +90,21 @@ def get_experiment_status() -> Response:
     """
     return jsonify({"experiment_status": model.experiment_completeness_ratio})
 
+
+@app.route("/status/<run_id>", methods=["GET"])
+def get_run_status(run_id: str) -> Response:
+    """Get the status of a specific optimization run.
+
+    Args:
+        run_id (str): The ID of the optimization run.
+
+    Returns:
+        Response: A JSON response with the run status.
+    """
+    status = task_manager.get_status(run_id)
+    if status is None:
+        return jsonify({"error": "Run not found"}), 404
+    return jsonify(status)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
