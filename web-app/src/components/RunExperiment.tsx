@@ -4,6 +4,7 @@ import { ExperimentControls } from './ExperimentControls';
 import { useExperimentStore } from '../stores/experimentStore';
 import { useEquipmentStore } from '../stores/equipmentStore';
 import { cn } from '../lib/utils';
+import { v4 as uuidv4 } from 'uuid';
 
 interface LogEntry {
   timestamp: Date;
@@ -57,23 +58,30 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     }
   };
 
-  const handleStartExperiment = () => {
-    setIsRunning(true);
-    setStartTime(new Date());
-    setActionLog([
-      {
-        timestamp: new Date(),
-        type: 'place_droplets',
-        position: { x: 0, y: 0 },
-        drops: [2, 1, 1]
-      },
-      {
-        timestamp: new Date(Date.now() + 1000), // 1 second later
-        type: 'get_color',
-        position: { x: 0, y: 0 },
-        color: '#FF8844'
-      }
-    ]);
+  const handleStartExperiment = async () => {
+    try {
+      const experimentId = uuidv4();
+      await startExperiment(experimentId);
+      setIsRunning(true);
+      setStartTime(new Date());
+      setActionLog([
+        {
+          timestamp: new Date(),
+          type: 'place_droplets',
+          position: { x: 0, y: 0 },
+          drops: [2, 1, 1]
+        },
+        {
+          timestamp: new Date(Date.now() + 1000), // 1 second later
+          type: 'get_color',
+          position: { x: 0, y: 0 },
+          color: '#FF8844'
+        }
+      ]);
+    } catch (error) {
+      console.error('Failed to start experiment:', error);
+      alert('Failed to start experiment. Please try again.');
+    }
   };
 
   return (
