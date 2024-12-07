@@ -35,3 +35,21 @@ export async function startExperiment(experimentId: string): Promise<Response> {
 }
 
 // We can add other experiment-related API calls here as needed
+
+export async function getExperimentActionLog(experimentId: string): Promise<Response> {
+  const response = await fetch(
+    `${API_BASE_URL}/experiments/${experimentId}/action_log`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch action log: ${response.statusText}`);
+  }
+
+  return response.json();
+}

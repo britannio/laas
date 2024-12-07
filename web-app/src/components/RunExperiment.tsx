@@ -5,7 +5,7 @@ import { useExperimentStore } from "../stores/experimentStore";
 import { useEquipmentStore } from "../stores/equipmentStore";
 import { cn } from "../lib/utils";
 import { v4 as uuidv4 } from "uuid";
-import { startExperiment, cancelExperiment } from "@/lib/experimentApi";
+import { startExperiment, cancelExperiment, getExperimentActionLog } from "@/lib/experimentApi";
 
 interface LogEntry {
   timestamp: Date;
@@ -21,6 +21,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [actionLog, setActionLog] = useState<LogEntry[]>([]);
+  const [experimentId, setExperimentId] = useState<string | null>(null);
 
   const wells = useExperimentStore((state) => state.wells);
   const objective = useExperimentStore((state) => state.objective);
@@ -75,8 +76,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
   const handleStartExperiment = async () => {
     try {
-      const experimentId = uuidv4();
-      await startExperiment(experimentId);
+      const newExperimentId = uuidv4();
+      setExperimentId(newExperimentId);
+      await startExperiment(newExperimentId);
       setIsRunning(true);
       setStartTime(new Date());
       setActionLog([
@@ -132,6 +134,22 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         >
           {isRunning ? "Cancel Experiment" : "Start Experiment"}
         </button>
+
+        {experimentId && (
+          <button
+            onClick={async () => {
+              try {
+                const response = await getExperimentActionLog(experimentId);
+                console.log("Current Action Log:", response);
+              } catch (error) {
+                console.error("Failed to fetch action log:", error);
+              }
+            }}
+            className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
+          >
+            Debug: Fetch Log
+          </button>
+        )}
       </div>
 
       {/* Main content area */}
