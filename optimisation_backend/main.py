@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, Response, request
 from bayes_opt import BayesOpt
 from model import VirtualLab
-from background_tasks import BackgroundTaskManager, OptimizationTask
+from background_tasks import BackgroundTaskManager, Experiment
 
 app = Flask(__name__)
 model = VirtualLab()
