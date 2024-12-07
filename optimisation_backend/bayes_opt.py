@@ -16,6 +16,7 @@ class BayesOpt:
         target: list[int], 
         n_calls: int, 
         experiment_id: str,
+        task_manager,
         space: list[Dimension] | None = None
     ):
         """Initializes the BayesOpt class with the given parameters.
@@ -33,7 +34,8 @@ class BayesOpt:
         self.n_calls = n_calls
         self.space = space
         self.random_state = 42
-        self.model.set_current_experiment(experiment_id)
+        self.experiment_id = experiment_id
+        self.task_manager = task_manager
 
         if space is None:  # drops search space
             self.space = [
@@ -51,17 +53,32 @@ class BayesOpt:
         Returns:
             float: The loss value for the current step.
         """
+        # Log dye addition action
+        self.task_manager.add_action(
+            self.experiment_id,
+            "place",
+            {
+                "x": well_num_to_x_y(self.current_well)[0],
+                "y": well_num_to_x_y(self.current_well)[1],
+                "droplet_counts": [int(x) for x in params]
+            }
+        )
+
         add_dyes(*well_num_to_x_y(self.current_well), drops=[int(x) for x in params])
-        self.model.add_dyes(
-            *well_num_to_x_y(self.current_well), drops=[int(x) for x in params]
-        )  # register with the model
 
         status = get_well_color(*well_num_to_x_y(self.current_well))
         rgb = convert_hex_to_rgb(status[1:])
 
-        self.model.add_well_color_reading(
-            *well_num_to_x_y(self.current_well), rgb
-        )  # register with the model
+        # Log color reading action
+        self.task_manager.add_action(
+            self.experiment_id,
+            "read",
+            {
+                "x": well_num_to_x_y(self.current_well)[0],
+                "y": well_num_to_x_y(self.current_well)[1],
+                "color": status
+            }
+        )
 
         loss = ((np.array(self.target) - np.array(rgb)) ** 2).mean()
 

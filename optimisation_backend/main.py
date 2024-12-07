@@ -25,7 +25,14 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
     Returns:
         Response: A JSON response with the experiment ID.
     """
-    bo = BayesOpt(model, target=[90, 10, 130], n_calls=20, experiment_id=experiment_id, space=None)
+    bo = BayesOpt(
+        model, 
+        target=[90, 10, 130], 
+        n_calls=20, 
+        experiment_id=experiment_id,
+        task_manager=task_manager,
+        space=None
+    )
     experiment = Experiment(experiment_id=experiment_id, target=(90, 10, 130), n_calls=20)
 
     print('starting experiment in background')
@@ -45,14 +52,11 @@ def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_c
 
 @app.route("/experiments/<experiment_id>/action_log", methods=["GET"])
 def get_action_log(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
-    """Endpoint to get the action log for a specific experiment.
-
-    Returns:
-        Response: A JSON response containing the action log.
-    """
-    if experiment_id not in model.action_logs:
+    """Get the action log for a specific experiment."""
+    action_log = task_manager.get_action_log(experiment_id)
+    if action_log is None:
         return jsonify({"error": "Experiment not found"}), 404
-    return jsonify(model.action_logs[experiment_id].actions)
+    return jsonify(action_log)
 
 
 @app.route("/well_color/<int:x>/<int:y>", methods=["GET"])

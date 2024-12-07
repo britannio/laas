@@ -1,6 +1,6 @@
 from multiprocessing import Process, Lock
-from typing import Optional, Dict
-from dataclasses import dataclass
+from typing import Optional, Dict, List, Any
+from dataclasses import dataclass, field
 from datetime import datetime
 
 @dataclass
@@ -14,11 +14,27 @@ class Experiment:
     optimizer = None
     should_cancel: bool = False
     process: Optional[Process] = None
+    action_log: List[Dict[str, Any]] = field(default_factory=list)
+
+    def add_action(self, action_type: str, data: Dict[str, Any]) -> None:
+        """Adds an action to the experiment log.
+        
+        Args:
+            action_type (str): Type of action (e.g., 'place', 'read')
+            data (Dict[str, Any]): Data associated with the action
+        """
+        self.action_log.append({
+            "type": action_type,
+            "data": data,
+            "experiment_id": self.experiment_id,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
+        })
 
 class BackgroundTaskManager:
     def __init__(self):
         self._lock = Lock()
         self._current_experiment: Optional[Experiment] = None
+        self._experiments: Dict[str, Experiment] = {}
 
     def start_experiment(self, experiment: Experiment, optimizer) -> bool:
         print('requesting lock')
@@ -29,6 +45,7 @@ class BackgroundTaskManager:
             print('cancelled existing experiment')
 
             self._current_experiment = experiment
+            self._experiments[experiment.experiment_id] = experiment
             self._current_experiment.optimizer = optimizer
             self._current_experiment.status = "running"
             self._current_experiment.start_time = datetime.now()
@@ -67,6 +84,37 @@ class BackgroundTaskManager:
 
         self._current_experiment.status = "cancelled"
         self._current_experiment.end_time = datetime.now()
+        return True
+
+    def get_action_log(self, experiment_id: str) -> Optional[List[Dict[str, Any]]]:
+        """Gets the action log for a specific experiment.
+        
+        Args:
+            experiment_id (str): ID of the experiment
+            
+        Returns:
+            Optional[List[Dict[str, Any]]]: List of actions or None if experiment not found
+        """
+        experiment = self._experiments.get(experiment_id)
+        if experiment is None:
+            return None
+        return experiment.action_log
+
+    def add_action(self, experiment_id: str, action_type: str, data: Dict[str, Any]) -> bool:
+        """Adds an action to an experiment's log.
+        
+        Args:
+            experiment_id (str): ID of the experiment
+            action_type (str): Type of action
+            data (Dict[str, Any]): Action data
+            
+        Returns:
+            bool: True if action was added, False if experiment not found
+        """
+        experiment = self._experiments.get(experiment_id)
+        if experiment is None:
+            return False
+        experiment.add_action(action_type, data)
         return True
 
     def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:

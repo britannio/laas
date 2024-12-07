@@ -10,38 +10,13 @@ class Well:
         self.color: np.ndarray = np.zeros(3, dtype=np.float32)
 
 
-class ActionLog:
-    def __init__(self, experiment_id: str):
-        """Initializes an ActionLog with an empty list of actions.
-        
-        Args:
-            experiment_id (str): The ID of the experiment this log belongs to
-        """
-        self.experiment_id = experiment_id
-        self.actions: List[Dict[str, Any]] = []
-
-    def add_action(self, action_type: str, data: Dict[str, Any]) -> None:
-        """Adds an action to the log.
-
-        Args:
-            action_type (str): The type of action (e.g., 'place', 'read').
-            data (Dict[str, Any]): The data associated with the action.
-        """
-        self.actions.append({
-            "type": action_type, 
-            "data": data,
-            "experiment_id": self.experiment_id
-        })
-
 
 class VirtualLab:
     def __init__(self):
         """Initializes a VirtualLab with a 96-well plate and predefined dye colors."""
         # Initialize 96-well plate (8x12 standard layout)
         self.plate: List[List[Well]] = [[Well() for _ in range(12)] for _ in range(8)]
-        self.action_logs: Dict[str, ActionLog] = {}  # Store logs by experiment ID
         self.experiment_completeness_ratio = 0
-        self.current_experiment_id: Optional[str] = None
 
         # Define dye colors [R, G, B]
         self.dyes: List[List[float]] = [
