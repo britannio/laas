@@ -48,18 +48,23 @@ class BayesOpt:
         add_dyes(*well_num_to_x_y(self.current_well), drops=[int(x) for x in params])
         self.model.add_dyes(
             *well_num_to_x_y(self.current_well), drops=[int(x) for x in params]
-        )
+        )  # register with the model
 
         status = get_well_color(*well_num_to_x_y(self.current_well))
         rgb = convert_hex_to_rgb(status[1:])
+
+        self.model.add_well_color_reading(
+            *well_num_to_x_y(self.current_well), rgb
+        )  # register with the model
 
         loss = ((np.array(self.target) - np.array(rgb)) ** 2).mean()
 
         print(params, rgb, self.target, loss)
 
-        # time.sleep(0.2)
+        time.sleep(0.5)
 
         self.current_well += 1
+        self.model.experiment_completeness_ratio = self.current_well / self.n_calls
         return loss
 
     def run(self) -> dict:
