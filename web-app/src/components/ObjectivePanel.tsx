@@ -53,7 +53,6 @@ export function ObjectivePanel({
           <div className="text-sm text-gray-500">
             Optimize for specific color saturation
           </div>
-          <div className="text-xs text-blue-500 font-medium">Coming Soon</div>
         </button>
 
         <button
@@ -70,7 +69,6 @@ export function ObjectivePanel({
           <div className="text-sm text-gray-500">
             Optimize for specific color intensity
           </div>
-          <div className="text-xs text-blue-500 font-medium">Coming Soon</div>
         </button>
 
         <button

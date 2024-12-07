@@ -81,7 +81,6 @@ export function OptimizerPanel({
           >
             <div className="font-medium">{method.title}</div>
             <div className="text-sm text-gray-500">{method.description}</div>
-            <div className="text-xs text-blue-500 font-medium">Coming Soon</div>
           </div>
         ))}
       </div>
