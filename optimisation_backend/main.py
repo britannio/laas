@@ -22,19 +22,19 @@ task_manager = BackgroundTaskManager()
 def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Starts a Bayesian Optimization experiment with default parameters."""
     print(f"Starting new experiment with ID: {experiment_id}")
-    
+
     # Create experiment instance first
     experiment = Experiment(
-        experiment_id=experiment_id, 
-        target=(90, 10, 130), 
+        experiment_id=experiment_id,
+        target=(90, 10, 130),
         n_calls=20
     )
-    
+
     # Create optimizer with reference to task manager
     bo = BayesOpt(
-        model, 
-        target=[90, 10, 130], 
-        n_calls=20, 
+        model,
+        target=[90, 10, 130],
+        n_calls=20,
         experiment_id=experiment_id,
         task_manager=task_manager,
         space=None
@@ -43,9 +43,9 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
     print('Starting experiment in background')
     task_manager.start_experiment(experiment, bo)
     print('Experiment started')
-    
+
     return jsonify({
-        "message": "Optimization started", 
+        "message": "Optimization started",
         "experiment_id": experiment_id
     }), 200
 
@@ -64,12 +64,13 @@ def get_action_log(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Get the action log for a specific experiment."""
     print(f"Fetching action log for experiment {experiment_id}")
     action_log = task_manager.get_action_log(experiment_id)
-    
+
     if action_log is None:
         print(f"No action log found for experiment {experiment_id}")
         return jsonify({"error": "Experiment not found"}), 404
-        
+
     print(f"Found action log with {len(action_log)} entries")
+    print(action_log)
     return jsonify(action_log)
 
 
