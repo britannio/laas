@@ -6,81 +6,69 @@ export function EquipmentPanel({ onNext, onBack }: { onNext: () => void; onBack:
   const equipment = useEquipmentStore((state) => state.equipment);
   const toggleEquipment = useEquipmentStore((state) => state.toggleEquipment);
 
-  const compulsoryEquipment = [
+  const allEquipment = [
     {
       type: 'microplate',
       title: 'Microplate',
-      description: '96-well plate for sample handling'
+      description: '96-well plate for sample handling',
+      required: true
     },
     {
       type: 'dyePump',
       title: 'Dye Pump',
-      description: 'Precise dye dispensing system'
+      description: 'Precise dye dispensing system',
+      required: true
     },
     {
       type: 'camera',
       title: 'Camera',
-      description: 'High-resolution imaging system'
-    }
-  ] as const;
-
-  const optionalEquipment = [
+      description: 'High-resolution imaging system',
+      required: true
+    },
     {
       type: 'thermometer',
       title: 'Thermometer',
-      description: 'Temperature monitoring'
+      description: 'Temperature monitoring',
+      required: false
     },
     {
       type: 'phMeter',
       title: 'pH Meter',
-      description: 'pH measurement system'
+      description: 'pH measurement system',
+      required: false
     },
     {
       type: 'spectrophotometer',
       title: 'Spectrophotometer',
-      description: 'Absorbance measurement'
+      description: 'Absorbance measurement',
+      required: false
     },
     {
       type: 'vortexMixer',
       title: 'Vortex Mixer',
-      description: 'Sample mixing system'
+      description: 'Sample mixing system',
+      required: false
     }
   ] as const;
 
-  const hasRequiredEquipment = compulsoryEquipment.every(
-    (item) => equipment[item.type]?.status === 'idle'
-  );
+  const hasRequiredEquipment = allEquipment
+    .filter(item => item.required)
+    .every(item => equipment[item.type]?.status === 'idle');
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Required Equipment</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {compulsoryEquipment.map((item) => (
-            <EquipmentCard
-              key={item.type}
-              {...item}
-              isSelected={equipment[item.type]?.status === 'idle'}
-              onToggle={() => toggleEquipment(item.type)}
-              required
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Optional Equipment</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {optionalEquipment.map((item) => (
-            <EquipmentCard
-              key={item.type}
-              {...item}
-              isSelected={equipment[item.type]?.status === 'idle'}
-              onToggle={() => toggleEquipment(item.type)}
-              required={false}
-            />
-          ))}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {allEquipment.map((item) => (
+          <EquipmentCard
+            key={item.type}
+            type={item.type}
+            title={item.title}
+            description={item.description}
+            isSelected={equipment[item.type]?.status === 'idle'}
+            onToggle={() => toggleEquipment(item.type)}
+            required={item.required}
+          />
+        ))}
       </div>
 
       <div className="flex justify-between">
@@ -148,9 +136,6 @@ function EquipmentCard({
       )} />
       <div className="font-medium">{title}</div>
       <div className="text-sm text-gray-500">{description}</div>
-      {required && (
-        <div className="text-xs text-red-500 font-medium">Required</div>
-      )}
       {isSelected && (
         <div className="text-xs text-blue-600 font-medium">Selected</div>
       )}
