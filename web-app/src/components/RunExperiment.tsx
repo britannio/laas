@@ -92,12 +92,14 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       {/* Main content area */}
       <div className="grid grid-cols-2 gap-6">
         {/* Left column - Rotated well plate */}
-        <div className="transform rotate-90 origin-top-left translate-y-full">
-          <WellPlate
-            wells={wells}
-            activeWell={activeWell}
-            onWellClick={(x, y) => console.log(`Clicked well: ${x},${y}`)}
-          />
+        <div className="flex items-center justify-center h-[600px]">
+          <div className="transform rotate-90 origin-center">
+            <WellPlate
+              wells={wells}
+              activeWell={activeWell}
+              onWellClick={(x, y) => console.log(`Clicked well: ${x},${y}`)}
+            />
+          </div>
         </div>
 
         {/* Right column - Experiment info */}
