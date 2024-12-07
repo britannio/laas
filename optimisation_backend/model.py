@@ -25,15 +25,6 @@ class VirtualLab:
             [0.0, 0.0, 1.0],  # Dye C
         ]
 
-    def set_current_experiment(self, experiment_id: str) -> None:
-        """Sets the current experiment ID and creates a new action log if needed.
-        
-        Args:
-            experiment_id (str): The ID of the experiment to set as current
-        """
-        self.current_experiment_id = experiment_id
-        if experiment_id not in self.action_logs:
-            self.action_logs[experiment_id] = ActionLog(experiment_id)
 
     def validate_position(self, x: int, y: int) -> bool:
         """Validates if the given position is within the bounds of the plate.
@@ -73,35 +64,8 @@ class VirtualLab:
         # Ensure values stay in valid range [0, 1]
         well.color = np.clip(well.color, 0, 1)
 
-        # Log the action
-        self.action_logs[self.current_experiment_id].add_action(
-            "place",
-            {
-                "x": x,
-                "y": y,
-                "droplet_counts": drops,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-            },
-        )
         return True
 
-    def add_well_color_reading(self, x: int, y: int, rgb: Tuple[int, int, int]) -> None:
-        """Logs a color reading action for a specific well."""
-        if self.current_experiment_id is None:
-            return
-
-        hex_color = "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
-
-        # Log the action
-        self.action_logs[self.current_experiment_id].add_action(
-            "read",
-            {
-                "x": x,
-                "y": y,
-                "color": hex_color,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-            },
-        )
 
     def get_well_drops(self, x: int, y: int) -> Optional[np.ndarray]:
         """Gets the drops of dyes in a specific well.
