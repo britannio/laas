@@ -20,11 +20,17 @@ task_manager = BackgroundTaskManager()
 
 @app.route("/experiments/<experiment_id>/start_experiment", methods=["POST"])
 def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
-    """Starts a Bayesian Optimization experiment with default parameters.
-
-    Returns:
-        Response: A JSON response with the experiment ID.
-    """
+    """Starts a Bayesian Optimization experiment with default parameters."""
+    print(f"Starting new experiment with ID: {experiment_id}")
+    
+    # Create experiment instance first
+    experiment = Experiment(
+        experiment_id=experiment_id, 
+        target=(90, 10, 130), 
+        n_calls=20
+    )
+    
+    # Create optimizer with reference to task manager
     bo = BayesOpt(
         model, 
         target=[90, 10, 130], 
@@ -33,12 +39,15 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
         task_manager=task_manager,
         space=None
     )
-    experiment = Experiment(experiment_id=experiment_id, target=(90, 10, 130), n_calls=20)
 
-    print('starting experiment in background')
+    print('Starting experiment in background')
     task_manager.start_experiment(experiment, bo)
-    print('experiment started')
-    return jsonify({"message": "Optimization started", "experiment_id": experiment_id}), 200
+    print('Experiment started')
+    
+    return jsonify({
+        "message": "Optimization started", 
+        "experiment_id": experiment_id
+    }), 200
 
 @app.route("/experiments/<experiment_id>/optimize/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["POST"])
 def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_calls: int) -> Response:
@@ -53,9 +62,14 @@ def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_c
 @app.route("/experiments/<experiment_id>/action_log", methods=["GET"])
 def get_action_log(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Get the action log for a specific experiment."""
+    print(f"Fetching action log for experiment {experiment_id}")
     action_log = task_manager.get_action_log(experiment_id)
+    
     if action_log is None:
+        print(f"No action log found for experiment {experiment_id}")
         return jsonify({"error": "Experiment not found"}), 404
+        
+    print(f"Found action log with {len(action_log)} entries")
     return jsonify(action_log)
 
 

@@ -87,34 +87,26 @@ class BackgroundTaskManager:
         return True
 
     def get_action_log(self, experiment_id: str) -> Optional[List[Dict[str, Any]]]:
-        """Gets the action log for a specific experiment.
-        
-        Args:
-            experiment_id (str): ID of the experiment
-            
-        Returns:
-            Optional[List[Dict[str, Any]]]: List of actions or None if experiment not found
-        """
+        """Gets the action log for a specific experiment."""
         experiment = self._experiments.get(experiment_id)
         if experiment is None:
+            print(f"Warning: Attempted to get action log for non-existent experiment {experiment_id}")
             return None
+            
+        print(f"Retrieving action log for experiment {experiment_id}")
+        print(f"Action log length: {len(experiment.action_log)}")
         return experiment.action_log
 
     def add_action(self, experiment_id: str, action_type: str, data: Dict[str, Any]) -> bool:
-        """Adds an action to an experiment's log.
-        
-        Args:
-            experiment_id (str): ID of the experiment
-            action_type (str): Type of action
-            data (Dict[str, Any]): Action data
-            
-        Returns:
-            bool: True if action was added, False if experiment not found
-        """
+        """Adds an action to an experiment's log."""
         experiment = self._experiments.get(experiment_id)
         if experiment is None:
+            print(f"Warning: Attempted to add action to non-existent experiment {experiment_id}")
             return False
+            
         experiment.add_action(action_type, data)
+        print(f"Added action to experiment {experiment_id}: {action_type}")
+        print(f"Current action log length: {len(experiment.action_log)}")
         return True
 
     def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:

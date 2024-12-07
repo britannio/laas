@@ -45,44 +45,60 @@ class BayesOpt:
             ]
 
     def objective_function(self, params: list[int]) -> float:
-        """Objective function for the Bayesian optimization.
-
-        Args:
-            params (list[int]): The parameters for the current optimization step.
-
-        Returns:
-            float: The loss value for the current step.
-        """
-        # Log dye addition action
+        """Objective function for the Bayesian optimization."""
+        x, y = well_num_to_x_y(self.current_well)
+        
+        # Log dye addition action with more detailed information
         self.task_manager.add_action(
             self.experiment_id,
             "place",
             {
-                "x": well_num_to_x_y(self.current_well)[0],
-                "y": well_num_to_x_y(self.current_well)[1],
-                "droplet_counts": [int(x) for x in params]
+                "x": x,
+                "y": y,
+                "well_number": self.current_well,
+                "droplet_counts": [int(x) for x in params],
+                "iteration": self.current_well + 1,
+                "total_iterations": self.n_calls
             }
         )
 
-        add_dyes(*well_num_to_x_y(self.current_well), drops=[int(x) for x in params])
-
-        status = get_well_color(*well_num_to_x_y(self.current_well))
+        # Add dyes and get color
+        add_dyes(x, y, drops=[int(x) for x in params])
+        status = get_well_color(x, y)
         rgb = convert_hex_to_rgb(status[1:])
 
-        # Log color reading action
+        # Log color reading action with more detailed information
         self.task_manager.add_action(
             self.experiment_id,
             "read",
             {
-                "x": well_num_to_x_y(self.current_well)[0],
-                "y": well_num_to_x_y(self.current_well)[1],
-                "color": status
+                "x": x,
+                "y": y,
+                "well_number": self.current_well,
+                "color": status,
+                "rgb_values": rgb,
+                "iteration": self.current_well + 1,
+                "total_iterations": self.n_calls
             }
         )
 
         loss = ((np.array(self.target) - np.array(rgb)) ** 2).mean()
 
-        print(params, rgb, self.target, loss)
+        # Log optimization step result
+        self.task_manager.add_action(
+            self.experiment_id,
+            "optimization_step",
+            {
+                "iteration": self.current_well + 1,
+                "total_iterations": self.n_calls,
+                "loss": float(loss),
+                "parameters": [int(x) for x in params],
+                "target_rgb": self.target,
+                "achieved_rgb": rgb
+            }
+        )
+
+        print(f"Well {self.current_well}: params={params}, rgb={rgb}, target={self.target}, loss={loss}")
 
         time.sleep(0.5)
 
