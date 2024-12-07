@@ -21,4 +21,13 @@ export interface Experiment {
 export interface WellData {
   color: string;
   drops: [number, number, number];
+}export interface WellData {
+  reagent?: string;
+  volume?: number;
+  concentration?: number;
+  status?: 'planned' | 'in-progress' | 'completed' | 'error';
+  results?: {
+    measurement: number;
+    timestamp: string;
+  }[];
 }

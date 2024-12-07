@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useExperimentStore } from './stores/experimentStore';
 import { BeakerIcon } from 'lucide-react';
 import { Button } from './components/ui/Button';
 import { PlanExperiment } from './components/PlanExperiment';
