@@ -11,6 +11,7 @@ interface LogEntry {
   position: { x: number; y: number };
   drops?: [number, number, number];
   color?: string;
+  status?: 'cancelled';
 }
 
 export function RunExperiment({ onBack }: { onBack: () => void }) {
@@ -40,6 +41,21 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleCancelExperiment = () => {
+    if (confirm('Are you sure you want to cancel the experiment?')) {
+      setIsRunning(false);
+      setStartTime(null);
+      setElapsedTime(0);
+      setActionLog(prev => [...prev, {
+        timestamp: new Date(),
+        type: 'place_droplets',
+        position: { x: 0, y: 0 },
+        drops: undefined,
+        status: 'cancelled'
+      }]);
+    }
   };
 
   const handleStartExperiment = () => {
@@ -81,18 +97,31 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           <ExperimentControls />
         </div>
         
-        <button
-          onClick={handleStartExperiment}
-          disabled={isRunning}
-          className={cn(
-            "px-4 py-2 rounded-lg font-medium",
-            isRunning
-              ? "bg-gray-100 text-gray-400"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+        <div className="flex space-x-4">
+          {isRunning && (
+            <button
+              onClick={handleCancelExperiment}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium",
+                "bg-red-100 text-red-600 hover:bg-red-200"
+              )}
+            >
+              Cancel Experiment
+            </button>
           )}
-        >
-          {isRunning ? 'Running...' : 'Start Experiment'}
-        </button>
+          <button
+            onClick={handleStartExperiment}
+            disabled={isRunning}
+            className={cn(
+              "px-4 py-2 rounded-lg font-medium",
+              isRunning
+                ? "bg-gray-100 text-gray-400"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            )}
+          >
+            {isRunning ? 'Running...' : 'Start Experiment'}
+          </button>
+        </div>
       </div>
 
       {/* Main content area */}
