@@ -21,7 +21,6 @@ export interface Experiment {
 export interface WellData {
   color: string;
   drops: [number, number, number];
-}export interface WellData {
   reagent?: string;
   volume?: number;
   concentration?: number;
@@ -30,9 +29,6 @@ export interface WellData {
     measurement: number;
     timestamp: string;
   }[];
-}
-export interface WellData {
-  // Existing WellData interface if any
 }
 
 export interface Objective {
