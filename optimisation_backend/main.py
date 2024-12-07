@@ -6,13 +6,7 @@ from model import VirtualLab
 from background_tasks import BackgroundTaskManager, Experiment
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": ["http://localhost:3000"],  # Allow your frontend origin
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app)  # Enable CORS for all routes with default settings
 model = VirtualLab()
 task_manager = BackgroundTaskManager()
 
