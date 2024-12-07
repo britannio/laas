@@ -44,7 +44,7 @@ def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_c
 
 
 @app.route("/experiments/<experiment_id>/action_log", methods=["GET"])
-def get_action_log(experiment_id: str) -> Response:
+def get_action_log(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Endpoint to get the action log for a specific experiment.
 
     Returns:
@@ -93,10 +93,10 @@ def get_experiment_status(experiment_id: str) -> Union[Response, Tuple[Response,
 @app.route("/cancel_experiment", methods=["POST"])
 def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
 
-    if task_manager.cancel_current_experiment():
-        return jsonify({"message": "Experiment cancelled successfully"})
-    else:
-        return jsonify({"error": "No running experiment to cancel"}), 400
+    task_manager.cancel_current_experiment()
+    return jsonify({"message": "Experiment cancelled successfully"})
+    # else:
+        # return jsonify({"error": "No running experiment to cancel"}), 400
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

@@ -52,23 +52,22 @@ class BackgroundTaskManager:
 
     def cancel_current_experiment(self) -> bool:
         """Cancels the current experiment if one exists."""
-        with self._lock:
-            if not self._current_experiment:
-                return False
+        if not self._current_experiment:
+            return False
 
-            if self._current_experiment.process:
-                # Terminate the process
-                self._current_experiment.process.terminate()
-                # Wait for process to finish
-                self._current_experiment.process.join(timeout=1.0)
-                # If process is still alive after timeout, kill it
-                if self._current_experiment.process.is_alive():
-                    self._current_experiment.process.kill()
-                    self._current_experiment.process.join()
+        if self._current_experiment.process:
+            # Terminate the process
+            self._current_experiment.process.terminate()
+            # Wait for process to finish
+            self._current_experiment.process.join(timeout=1.0)
+            # If process is still alive after timeout, kill it
+            if self._current_experiment.process.is_alive():
+                self._current_experiment.process.kill()
+                self._current_experiment.process.join()
 
-            self._current_experiment.status = "cancelled"
-            self._current_experiment.end_time = datetime.now()
-            return True
+        self._current_experiment.status = "cancelled"
+        self._current_experiment.end_time = datetime.now()
+        return True
 
     def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:
         if not self._current_experiment or self._current_experiment.experiment_id != experiment_id:
