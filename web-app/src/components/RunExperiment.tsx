@@ -95,11 +95,12 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
           <div className="w-full max-w-3xl aspect-[1.5/1]">
             <div className="transform rotate-90 lg:rotate-0 w-full h-full">
-            <WellPlate
-              wells={wells}
-              activeWell={activeWell}
-              onWellClick={(x, y) => console.log(`Clicked well: ${x},${y}`)}
-            />
+              <WellPlate
+                wells={wells}
+                activeWell={activeWell}
+                onWellClick={(x, y) => console.log(`Clicked well: ${x},${y}`)}
+              />
+            </div>
           </div>
         </div>
 
