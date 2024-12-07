@@ -1,17 +1,7 @@
-import { useExperimentStore } from './stores/experimentStore';
-import { Objective, Optimizer, OptimizerType } from './types/experiment';
 import { BeakerIcon } from 'lucide-react';
-import { cn } from './lib/utils';
-import { PlanExperiment } from './components/PlanExperiment';
-import { RunExperiment } from './components/RunExperiment';
+import { ExperimentStepper } from './components/ExperimentStepper';
 
 function App() {
-  const wells = useExperimentStore((state) => state.wells);
-  const activeWell = useExperimentStore((state) => state.activeWell);
-  const objective = useExperimentStore((state) => state.objective);
-  const setObjective = useExperimentStore((state) => state.setObjective);
-  const optimizer = useExperimentStore((state) => state.optimizer);
-  const setOptimizer = useExperimentStore((state) => state.setOptimizer);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,17 +17,7 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left half - Plan */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-6">Plan Experiment</h2>
-              <PlanExperiment />
-            </div>
-            {/* Objective section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-6">Objective</h2>
-              <div className="grid grid-cols-2 gap-4">
+        <ExperimentStepper />
                 <button
                   className={cn(
                     "p-4 rounded-lg border-2 transition-all",
