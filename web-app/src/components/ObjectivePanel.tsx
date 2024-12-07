@@ -7,6 +7,7 @@ export function ObjectivePanel({ onNext, onBack }: { onNext: () => void; onBack:
 
   return (
     <div className="space-y-6">
+
       <div className="grid grid-cols-3 gap-4">
         <button
           className={cn(
