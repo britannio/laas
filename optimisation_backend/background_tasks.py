@@ -32,7 +32,7 @@ class BackgroundTaskManager:
             self._current_experiment.optimizer = optimizer
             self._current_experiment.status = "running"
             self._current_experiment.start_time = datetime.now()
-            
+
             # Create and store the thread
             thread = Thread(target=self._run_optimization, args=(optimizer,), daemon=True)
             self._current_experiment.thread = thread
@@ -55,19 +55,18 @@ class BackgroundTaskManager:
 
     def cancel_current_experiment(self) -> bool:
         """Cancels the current experiment if one exists."""
-        with self._lock:
-            if not self._current_experiment:
-                return False
-                
-            self._current_experiment.should_cancel = True
-            
-            # Wait for thread to finish if it exists
-            if self._current_experiment.thread and self._current_experiment.thread.is_alive():
-                self._current_experiment.thread.join(timeout=1.0)  # Wait up to 1 second
-                
-            self._current_experiment.status = "cancelled"
-            self._current_experiment.end_time = datetime.now()
-            return True
+        if not self._current_experiment:
+            return False
+
+        self._current_experiment.should_cancel = True
+
+        # Wait for thread to finish if it exists
+        if self._current_experiment.thread and self._current_experiment.thread.is_alive():
+            self._current_experiment.thread.join(timeout=1.0)  # Wait up to 1 second
+
+        self._current_experiment.status = "cancelled"
+        self._current_experiment.end_time = datetime.now()
+        return True
 
     def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:
         if not self._current_experiment or self._current_experiment.experiment_id != experiment_id:
