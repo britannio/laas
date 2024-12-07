@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, Response, request
+from flask import Flask, jsonify, Response
 from typing import Union, Tuple
 from bayes_opt import BayesOpt
 from model import VirtualLab
@@ -18,7 +18,7 @@ def start_experiment(experiment_id: str) -> Response:
     """
     bo = BayesOpt(model, target=[90, 10, 130], n_calls=20, space=None)
     experiment = Experiment(experiment_id=experiment_id, target=(90, 10, 130), n_calls=20)
-    
+
     task_manager.start_experiment(experiment, bo)
     return jsonify({"message": "Optimization started", "experiment_id": experiment_id})
 
@@ -27,7 +27,7 @@ def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_c
     """Starts a Bayesian Optimization experiment with specified parameters."""
     bo = BayesOpt(model, target=(r, g, b), n_calls=n_calls, space=None)
     experiment = Experiment(experiment_id=experiment_id, target=(r, g, b), n_calls=n_calls)
-    
+
     task_manager.start_experiment(experiment, bo)
     return jsonify({"message": "Optimization started", "experiment_id": experiment_id})
 
@@ -43,7 +43,7 @@ def get_action_log() -> Response:
 
 
 @app.route("/well_color/<int:x>/<int:y>", methods=["GET"])
-def get_well_color(x: int, y: int) -> Response:
+def get_well_color(x: int, y: int) -> Union[Response, Tuple[Response, int]]:
     """Endpoint to get the color of a well given its x, y coordinates.
 
     Args:
@@ -59,14 +59,14 @@ def get_well_color(x: int, y: int) -> Response:
     return jsonify({"color": color})
 
 
-@app.route("/status", methods=["GET"])
-def get_experiment_status() -> Response:
-    """Endpoint to get the experiment status from the model.
+# @app.route("/status", methods=["GET"])
+# def get_experiment_status() -> Response:
+#     """Endpoint to get the experiment status from the model.
 
-    Returns:
-        Response: A JSON response containing the experiment status.
-    """
-    return jsonify({"experiment_status": model.experiment_completeness_ratio})
+#     Returns:
+#         Response: A JSON response containing the experiment status.
+#     """
+#     return jsonify({"experiment_status": model.experiment_completeness_ratio})
 
 
 @app.route("/experiments/<experiment_id>/status", methods=["GET"])
@@ -83,7 +83,7 @@ def cancel_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int
     current_experiment = task_manager._current_experiment
     if not current_experiment or current_experiment.experiment_id != experiment_id:
         return jsonify({"error": "Experiment not found"}), 404
-        
+
     if task_manager.cancel_current_experiment():
         return jsonify({"message": "Experiment cancelled successfully"})
     else:
