@@ -51,6 +51,12 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         type: 'place_droplets',
         position: { x: 0, y: 0 },
         drops: [2, 1, 1]
+      },
+      {
+        timestamp: new Date(Date.now() + 1000), // 1 second later
+        type: 'get_color',
+        position: { x: 0, y: 0 },
+        color: '#FF8844'
       }
     ]);
   };
@@ -132,27 +138,45 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
                     {entry.timestamp.toLocaleTimeString()}
                   </div>
                   {entry.type === 'place_droplets' ? (
-                    <div>
-                      <span className="font-medium">Place Droplets</span>
-                      <span className="text-gray-600">
-                        {` at Well (${entry.position.x}, ${entry.position.y})`}
-                      </span>
-                      <div className="text-sm text-gray-600">
-                        Drops: A:{entry.drops?.[0]} B:{entry.drops?.[1]} C:{entry.drops?.[2]}
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-medium">Place Droplets</span>
+                        <span className="text-gray-600">
+                          {` at Well (${entry.position.x}, ${entry.position.y})`}
+                        </span>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-2 ml-4">
+                        <div className="text-sm font-medium text-blue-800 mb-1">Drop Counts:</div>
+                        <div className="grid grid-cols-3 gap-3 text-sm">
+                          <div className="flex flex-col items-center">
+                            <div className="w-3 h-3 rounded-full bg-red-500 mb-1" />
+                            <span className="font-mono">{entry.drops?.[0]}</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <div className="w-3 h-3 rounded-full bg-green-500 mb-1" />
+                            <span className="font-mono">{entry.drops?.[1]}</span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <div className="w-3 h-3 rounded-full bg-blue-500 mb-1" />
+                            <span className="font-mono">{entry.drops?.[2]}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ) : (
-                    <div>
-                      <span className="font-medium">Get Color</span>
-                      <span className="text-gray-600">
-                        {` at Well (${entry.position.x}, ${entry.position.y})`}
-                      </span>
-                      <div className="flex items-center space-x-2">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="font-medium">Read Color</span>
+                        <span className="text-gray-600">
+                          {` at Well (${entry.position.x}, ${entry.position.y})`}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-2 ml-4">
                         <div 
-                          className="w-4 h-4 rounded-full" 
+                          className="w-6 h-6 rounded-lg shadow-inner" 
                           style={{ backgroundColor: entry.color }}
                         />
-                        <span className="text-sm text-gray-600">{entry.color}</span>
+                        <span className="font-mono text-sm">{entry.color}</span>
                       </div>
                     </div>
                   )}
