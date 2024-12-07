@@ -93,7 +93,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       <div className="grid grid-cols-2 gap-6">
         {/* Left column - Rotated well plate */}
         <div className="flex items-center justify-center h-[600px]">
-          <div className="transform rotate-90 origin-center">
+          <div className="transform rotate-90 origin-center scale-150">
             <WellPlate
               wells={wells}
               activeWell={activeWell}
