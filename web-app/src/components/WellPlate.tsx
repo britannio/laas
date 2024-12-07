@@ -10,7 +10,7 @@ interface WellPlateProps {
 
 export const WellPlate = memo(({ wells, activeWell, onWellClick }: WellPlateProps) => {
   return (
-    <div className="grid grid-cols-12 gap-1 p-4 bg-white rounded-lg shadow-lg">
+    <div className="grid grid-cols-12 gap-[2%] aspect-[1.5/1] w-full bg-white rounded-lg shadow-lg p-[4%]">
       {Array.from({ length: 8 }, (_, row) =>
         Array.from({ length: 12 }, (_, col) => {
           const wellKey = `${row},${col}`;

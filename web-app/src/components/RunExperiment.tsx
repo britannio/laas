@@ -56,7 +56,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full gap-6">
       {/* Controls moved to top */}
       <div className="flex justify-between items-center">
         <div className="flex space-x-4">
@@ -90,10 +90,11 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Main content area */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Left column - Rotated well plate */}
-        <div className="flex items-center justify-center h-[600px]">
-          <div className="transform rotate-90 origin-center scale-150">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0">
+        {/* Left column - Responsive well plate */}
+        <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+          <div className="w-full max-w-3xl aspect-[1.5/1]">
+            <div className="transform rotate-90 lg:rotate-0 w-full h-full">
             <WellPlate
               wells={wells}
               activeWell={activeWell}
@@ -102,8 +103,8 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        {/* Right column - Experiment info */}
-        <div className="space-y-6">
+        {/* Right column - Scrollable content */}
+        <div className="flex flex-col gap-4 min-h-0">
           {/* Timer and Step Count */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
@@ -121,9 +122,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           </div>
 
           {/* Action Log */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
+          <div className="bg-white rounded-lg shadow-sm p-4 flex-grow min-h-0">
             <h4 className="font-medium text-gray-700 mb-4">Action Log</h4>
-            <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            <div className="space-y-3 overflow-y-auto h-[calc(100%-2rem)]">
               {actionLog.map((entry, index) => (
                 <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
                   <div className="text-sm text-gray-500">
