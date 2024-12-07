@@ -47,9 +47,12 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   };
 
   const handleCancelExperiment = async () => {
+    console.log("Cancel button clicked");
     if (confirm("Are you sure you want to cancel the experiment?")) {
       try {
+        console.log("Sending cancel request");
         await cancelExperiment();
+        console.log("Cancel request successful");
         setIsRunning(false);
         setStartTime(null);
         setElapsedTime(0);
