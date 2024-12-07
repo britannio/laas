@@ -31,3 +31,11 @@ export interface WellData {
     timestamp: string;
   }[];
 }
+export interface WellData {
+  // Existing WellData interface if any
+}
+
+export interface Objective {
+  type: 'targetSaturation' | 'targetIntensity';
+  value?: number; // The target value to achieve
+}
