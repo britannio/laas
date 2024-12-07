@@ -21,7 +21,6 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [actionLog, setActionLog] = useState<LogEntry[]>([]);
   
   const wells = useExperimentStore((state) => state.wells);
-  const activeWell = useExperimentStore((state) => state.activeWell);
   const objective = useExperimentStore((state) => state.objective);
   const optimizer = useExperimentStore((state) => state.optimizer);
   const equipment = useEquipmentStore((state) => state.equipment);
