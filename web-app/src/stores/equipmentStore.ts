@@ -2,11 +2,11 @@ import { create } from 'zustand';
 import type { EquipmentType, AnyEquipment } from '../types/equipment';
 
 interface EquipmentState {
-  equipment: Record<EquipmentType, AnyEquipment>;
+  equipment: Partial<Record<EquipmentType, AnyEquipment>>;
   toggleEquipment: (type: EquipmentType) => void;
 }
 
-export const useEquipmentStore = create<EquipmentState>((set) => ({
+export const useEquipmentStore = create<EquipmentState>()((set) => ({
   equipment: {
     // Compulsory equipment
     microplate: {

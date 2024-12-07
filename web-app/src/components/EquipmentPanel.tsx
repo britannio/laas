@@ -110,6 +110,8 @@ export function EquipmentPanel({ onNext, onBack }: { onNext: () => void; onBack:
   );
 }
 
+import { EquipmentType } from '../types/equipment';
+
 interface EquipmentCardProps {
   type: EquipmentType;
   title: string;
