@@ -1,13 +1,9 @@
-import { useState } from 'react';
 import { useExperimentStore } from './stores/experimentStore';
 import { BeakerIcon } from 'lucide-react';
-import { Button } from './components/ui/Button';
 import { PlanExperiment } from './components/PlanExperiment';
 import { RunExperiment } from './components/RunExperiment';
-import { CreateExperimentModal } from './components/CreateExperimentModal';
 
 function App() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const wells = useExperimentStore((state) => state.wells);
   const activeWell = useExperimentStore((state) => state.activeWell);
 
@@ -20,9 +16,6 @@ function App() {
               <BeakerIcon className="h-8 w-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">LaaS</h1>
             </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              Create New Experiment
-            </Button>
           </div>
         </div>
       </header>
@@ -35,6 +28,13 @@ function App() {
               <h2 className="text-xl font-semibold mb-6">Plan Experiment</h2>
               <PlanExperiment />
             </div>
+            {/* Add the new Objective section */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-6">Objective</h2>
+              <p className="text-gray-600">
+                Mix different combinations of dyes to create new colors and observe their interactions.
+              </p>
+            </div>
           </div>
 
           {/* Right half - Run */}
@@ -46,11 +46,6 @@ function App() {
           </div>
         </div>
       </main>
-
-      <CreateExperimentModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
     </div>
   );
 }
