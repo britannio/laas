@@ -1,51 +1,67 @@
-import { useEquipmentStore } from '@/store/equipmentStore';
-import { cn } from '@/lib/utils';
-import { Beaker, Droplets, Camera } from 'lucide-react';
-
-const equipmentIcons = {
-  microplate: Beaker,
-  dyePump: Droplets,
-  camera: Camera,
-};
+import { equipmentIcons } from '../lib/icons';
+import { useEquipmentStore } from '../stores/equipmentStore';
+import { cn } from '../lib/utils';
 
 export function EquipmentPanel() {
   const equipment = useEquipmentStore((state) => state.equipment);
+  const toggleEquipment = useEquipmentStore((state) => state.toggleEquipment);
+
+  const equipmentCards = [
+    {
+      type: 'microplate',
+      title: 'Microplate',
+      description: '96-well plate for sample handling'
+    },
+    {
+      type: 'dyePump',
+      title: 'Dye Pump',
+      description: 'Precise dye dispensing system'
+    },
+    {
+      type: 'camera',
+      title: 'Camera',
+      description: 'High-resolution imaging system'
+    }
+  ] as const;
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Laboratory Equipment</h3>
-      <div className="grid gap-4">
-        {Object.values(equipment).map((item) => {
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {equipmentCards.map((item) => {
           const Icon = equipmentIcons[item.type];
-          
+          const equipmentItem = equipment[item.type];
+          const isSelected = equipmentItem?.status === 'idle';
+
           return (
-            <div
-              key={item.id}
+            <button
+              key={item.type}
               className={cn(
-                'flex items-center space-x-3 p-3 rounded-lg border',
-                'bg-white transition-colors',
-                {
-                  'border-green-200 bg-green-50': item.status === 'idle',
-                  'border-yellow-200 bg-yellow-50': item.status === 'busy',
-                  'border-red-200 bg-red-50': item.status === 'error',
-                }
+                "p-4 rounded-lg border-2 transition-all",
+                "flex flex-col items-center justify-center text-center space-y-2",
+                isSelected
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50',
+                equipmentItem?.status === 'busy' && 'border-yellow-500 bg-yellow-50',
+                equipmentItem?.status === 'error' && 'border-red-500 bg-red-50'
               )}
+              onClick={() => toggleEquipment(item.type)}
             >
-              <div className={cn(
-                'p-2 rounded-full',
-                {
-                  'bg-green-100 text-green-600': item.status === 'idle',
-                  'bg-yellow-100 text-yellow-600': item.status === 'busy',
-                  'bg-red-100 text-red-600': item.status === 'error',
-                }
-              )}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">{item.name}</h4>
-                <p className="text-sm text-gray-500 capitalize">{item.status}</p>
-              </div>
-            </div>
+              <Icon className={cn(
+                "h-8 w-8",
+                isSelected ? 'text-blue-600' : 'text-gray-600',
+                equipmentItem?.status === 'busy' && 'text-yellow-600',
+                equipmentItem?.status === 'error' && 'text-red-600'
+              )} />
+              <div className="font-medium">{item.title}</div>
+              <div className="text-sm text-gray-500">{item.description}</div>
+              {equipmentItem?.status === 'busy' && (
+                <div className="text-xs text-yellow-600 font-medium">Busy</div>
+              )}
+              {equipmentItem?.status === 'error' && (
+                <div className="text-xs text-red-600 font-medium">Error</div>
+              )}
+            </button>
           );
         })}
       </div>

@@ -1,0 +1,48 @@
+import { create } from 'zustand';
+import type { EquipmentType } from '../lib/icons';
+
+type EquipmentStatus = 'idle' | 'busy' | 'error';
+
+interface Equipment {
+  id: string;
+  type: EquipmentType;
+  name: string;
+  status: EquipmentStatus;
+}
+
+interface EquipmentState {
+  equipment: Record<EquipmentType, Equipment>;
+  toggleEquipment: (type: EquipmentType) => void;
+}
+
+export const useEquipmentStore = create<EquipmentState>((set) => ({
+  equipment: {
+    microplate: {
+      id: '1',
+      type: 'microplate',
+      name: 'Microplate Reader',
+      status: 'idle',
+    },
+    dyePump: {
+      id: '2',
+      type: 'dyePump',
+      name: 'Dye Pump System',
+      status: 'idle',
+    },
+    camera: {
+      id: '3',
+      type: 'camera',
+      name: 'Imaging Camera',
+      status: 'idle',
+    },
+  },
+  toggleEquipment: (type) => set((state) => ({
+    equipment: {
+      ...state.equipment,
+      [type]: {
+        ...state.equipment[type],
+        status: state.equipment[type]?.status === 'idle' ? 'busy' : 'idle'
+      }
+    }
+  })),
+}));
