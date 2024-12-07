@@ -21,19 +21,19 @@ export const useEquipmentStore = create<EquipmentState>((set) => ({
       id: '1',
       type: 'microplate',
       name: 'Microplate Reader',
-      status: 'idle',
+      status: 'busy',
     },
     dyePump: {
       id: '2',
       type: 'dyePump',
       name: 'Dye Pump System',
-      status: 'idle',
+      status: 'busy',
     },
     camera: {
       id: '3',
       type: 'camera',
       name: 'Imaging Camera',
-      status: 'idle',
+      status: 'busy',
     },
   },
   toggleEquipment: (type) => set((state) => ({
