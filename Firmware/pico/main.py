@@ -157,20 +157,20 @@ try:
         yValue = yAxis.read_u16()
         print(str(xValue) +", " + str(yValue))
 
-        # servo.duty_u16(map_duty(xValue))
-        servo.duty_u16(min_duty)
-        time.sleep(1)
-        servo.duty_u16(max_duty)
-        time.sleep(1)
+        servo.duty_u16(map_duty(xValue))
+        # servo.duty_u16(min_duty)
+        # time.sleep(1)
+        # servo.duty_u16(max_duty)
+        # time.sleep(1)
 
         # if xValue <= 600:
         #     stepper_x.step(stepper_speed)
         # elif xValue >= 60000:
         #     stepper_x.step(-stepper_speed)
-        # if yValue <= 600:
-        #     stepper_y.step(stepper_speed)
-        # elif yValue >= 60000:
-        #     stepper_y.step(-stepper_speed)
+        if yValue <= 600:
+            stepper_y.step(stepper_speed)
+        elif yValue >= 60000:
+            stepper_y.step(-stepper_speed)
         # time.sleep(0.1) # stop for a while     #
         led.toggle()   
       
