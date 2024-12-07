@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, Response
 from bayes_opt import BayesOpt
 from model import VirtualLab
 
@@ -13,7 +13,7 @@ def go() -> Response:
     Returns:
         Response: A JSON response indicating the request was received.
     """
-    bo = BayesOpt(model, target=(90, 10, 130), n_calls=20, space=None)
+    bo = BayesOpt(model, target=[90, 10, 130], n_calls=20, space=None)
     result = bo.run()
     print(result.x)
 
