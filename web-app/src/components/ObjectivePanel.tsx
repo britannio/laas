@@ -7,18 +7,48 @@ export function ObjectivePanel({ onNext, onBack }: { onNext: () => void; onBack:
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center">
+      <div className="grid grid-cols-3 gap-4">
         <button
           className={cn(
-            "p-6 rounded-lg border-2 transition-all w-full max-w-md",
-            "flex flex-col items-center justify-center text-center space-y-4",
+            "p-4 rounded-lg border-2 transition-all",
+            "flex flex-col items-center justify-center text-center space-y-2",
+            objective?.type === 'targetSaturation'
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
+          )}
+          onClick={() => setObjective({ type: 'targetSaturation', value: 50 })}
+        >
+          <div className="font-medium">Target Saturation</div>
+          <div className="text-sm text-gray-500">Optimize for specific color saturation</div>
+          <div className="text-xs text-blue-500 font-medium">Coming Soon</div>
+        </button>
+
+        <button
+          className={cn(
+            "p-4 rounded-lg border-2 transition-all",
+            "flex flex-col items-center justify-center text-center space-y-2",
+            objective?.type === 'targetIntensity'
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
+          )}
+          onClick={() => setObjective({ type: 'targetIntensity', value: 50 })}
+        >
+          <div className="font-medium">Target Intensity</div>
+          <div className="text-sm text-gray-500">Optimize for specific color intensity</div>
+          <div className="text-xs text-blue-500 font-medium">Coming Soon</div>
+        </button>
+
+        <button
+          className={cn(
+            "p-4 rounded-lg border-2 transition-all",
+            "flex flex-col items-center justify-center text-center space-y-2",
             objective?.type === 'targetColor'
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50/50'
           )}
           onClick={() => setObjective({ type: 'targetColor', color: '#FF0000' })}
         >
-          <div className="font-medium text-lg">Target Color</div>
+          <div className="font-medium">Target Color</div>
           <div className="text-sm text-gray-500">Select a specific color to optimize for</div>
         </button>
       </div>
@@ -70,10 +100,10 @@ export function ObjectivePanel({ onNext, onBack }: { onNext: () => void; onBack:
         </button>
         <button
           onClick={onNext}
-          disabled={!objective?.color}
+          disabled={objective?.type !== 'targetColor' || !objective?.color}
           className={cn(
             "px-4 py-2 rounded-lg font-medium",
-            !objective?.color
+            objective?.type !== 'targetColor' || !objective?.color
               ? "bg-gray-100 text-gray-400"
               : "bg-blue-600 text-white hover:bg-blue-700"
           )}
