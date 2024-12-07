@@ -3,7 +3,7 @@ import {
   Droplets,
   Camera,
   Thermometer,
-  Flask,
+  TestTubes,
   Activity,
   RotateCw
 } from 'lucide-react';
@@ -15,7 +15,7 @@ export const equipmentIcons = {
   camera: Camera,
   // Optional equipment
   thermometer: Thermometer,
-  phMeter: Flask,
+  phMeter: TestTubes,
   spectrophotometer: Activity,
   vortexMixer: RotateCw,
 } as const;
