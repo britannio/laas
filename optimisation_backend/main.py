@@ -14,8 +14,15 @@ CORS(app, resources={
         "expose_headers": ["Content-Range", "X-Content-Range"]
     }
 })
-model = VirtualLab()
-task_manager = BackgroundTaskManager()
+
+# Create these as global variables but initialize them later
+model = None
+task_manager = None
+
+def init_app():
+    global model, task_manager
+    model = VirtualLab()
+    task_manager = BackgroundTaskManager()
 
 
 @app.route("/experiments/<experiment_id>/start_experiment", methods=["POST"])
@@ -118,4 +125,11 @@ def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
         # return jsonify({"error": "No running experiment to cancel"}), 400
 
 if __name__ == "__main__":
+    # Initialize the application
+    init_app()
+    
+    # Run the Flask app
     app.run(debug=True, port=5001)
+else:
+    # Initialize for when running from a WSGI server
+    init_app()
