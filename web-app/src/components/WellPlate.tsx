@@ -11,7 +11,27 @@ interface WellPlateProps {
 export const WellPlate = memo(({ wells, activeWell, onWellClick }: WellPlateProps) => {
   WellPlate.displayName = 'WellPlate';
   return (
-    <div className="grid grid-cols-12 gap-[2%] aspect-[1.5/1] w-full bg-white rounded-lg shadow-lg p-[4%]">
+    <div className="relative">
+      {/* Column labels (0-11) */}
+      <div className="absolute -top-8 left-[4%] right-[4%] grid grid-cols-12 gap-[2%]">
+        {Array.from({ length: 12 }, (_, i) => (
+          <div key={`col-${i}`} className="flex justify-center">
+            <span className="text-sm font-medium text-gray-600">{i}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Row labels (0-7) */}
+      <div className="absolute top-[4%] -left-6 bottom-[4%] grid grid-rows-8 gap-[2%]">
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={`row-${i}`} className="flex items-center">
+            <span className="text-sm font-medium text-gray-600">{i}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Well plate grid */}
+      <div className="grid grid-cols-12 gap-[2%] aspect-[1.5/1] w-full bg-white rounded-lg shadow-lg p-[4%]">
       {Array.from({ length: 8 }, (_, row) =>
         Array.from({ length: 12 }, (_, col) => {
           const wellKey = `${row},${col}`;

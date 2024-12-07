@@ -98,7 +98,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       {/* Main content area */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0">
         {/* Left column - Responsive well plate */}
-        <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-center p-8 bg-gray-50 rounded-lg">
           <div className="w-full max-w-3xl aspect-[1.5/1]">
             <div className="transform rotate-90 lg:rotate-0 w-full h-full">
               <WellPlate
