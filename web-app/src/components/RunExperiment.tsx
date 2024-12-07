@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
-import { WellPlate } from './WellPlate';
-import { ExperimentControls } from './ExperimentControls';
-import { useExperimentStore } from '../stores/experimentStore';
-import { useEquipmentStore } from '../stores/equipmentStore';
-import { cn } from '../lib/utils';
-import { v4 as uuidv4 } from 'uuid';
+import { useState, useEffect } from "react";
+import { WellPlate } from "./WellPlate";
+import { ExperimentControls } from "./ExperimentControls";
+import { useExperimentStore } from "../stores/experimentStore";
+import { useEquipmentStore } from "../stores/equipmentStore";
+import { cn } from "../lib/utils";
+import { v4 as uuidv4 } from "uuid";
+import { startExperiment } from "@/lib/experimentApi";
 
 interface LogEntry {
   timestamp: Date;
-  type: 'place_droplets' | 'get_color';
+  type: "place_droplets" | "get_color";
   position: { x: number; y: number };
   drops?: [number, number, number];
   color?: string;
-  status?: 'cancelled';
+  status?: "cancelled";
 }
 
 export function RunExperiment({ onBack }: { onBack: () => void }) {
@@ -20,7 +21,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [actionLog, setActionLog] = useState<LogEntry[]>([]);
-  
+
   const wells = useExperimentStore((state) => state.wells);
   const objective = useExperimentStore((state) => state.objective);
   const optimizer = useExperimentStore((state) => state.optimizer);
@@ -30,7 +31,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     let interval: NodeJS.Timeout;
     if (isRunning && startTime) {
       interval = setInterval(() => {
-        setElapsedTime(Math.floor((new Date().getTime() - startTime.getTime()) / 1000));
+        setElapsedTime(
+          Math.floor((new Date().getTime() - startTime.getTime()) / 1000),
+        );
       }, 1000);
     }
     return () => clearInterval(interval);
@@ -40,21 +43,24 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleCancelExperiment = () => {
-    if (confirm('Are you sure you want to cancel the experiment?')) {
+    if (confirm("Are you sure you want to cancel the experiment?")) {
       setIsRunning(false);
       setStartTime(null);
       setElapsedTime(0);
-      setActionLog(prev => [...prev, {
-        timestamp: new Date(),
-        type: 'place_droplets',
-        position: { x: 0, y: 0 },
-        drops: undefined,
-        status: 'cancelled'
-      }]);
+      setActionLog((prev) => [
+        ...prev,
+        {
+          timestamp: new Date(),
+          type: "place_droplets",
+          position: { x: 0, y: 0 },
+          drops: undefined,
+          status: "cancelled",
+        },
+      ]);
     }
   };
 
@@ -67,20 +73,20 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       setActionLog([
         {
           timestamp: new Date(),
-          type: 'place_droplets',
+          type: "place_droplets",
           position: { x: 0, y: 0 },
-          drops: [2, 1, 1]
+          drops: [2, 1, 1],
         },
         {
           timestamp: new Date(Date.now() + 1000), // 1 second later
-          type: 'get_color',
+          type: "get_color",
           position: { x: 0, y: 0 },
-          color: '#FF8844'
-        }
+          color: "#FF8844",
+        },
       ]);
     } catch (error) {
-      console.error('Failed to start experiment:', error);
-      alert('Failed to start experiment. Please try again.');
+      console.error("Failed to start experiment:", error);
+      alert("Failed to start experiment. Please try again.");
     }
   };
 
@@ -94,12 +100,12 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
             "px-4 py-2 rounded-lg font-medium",
             isRunning
               ? "bg-gray-100 text-gray-400"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200",
           )}
         >
           Back
         </button>
-        
+
         <button
           onClick={() => {
             if (isRunning) {
@@ -112,10 +118,10 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
             "px-4 py-2 rounded-lg font-medium",
             isRunning
               ? "bg-red-100 text-red-600 hover:bg-red-200"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-blue-600 text-white hover:bg-blue-700",
           )}
         >
-          {isRunning ? 'Cancel Experiment' : 'Start Experiment'}
+          {isRunning ? "Cancel Experiment" : "Start Experiment"}
         </button>
       </div>
 
@@ -156,11 +162,14 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
             <h4 className="font-medium text-gray-700 mb-4">Action Log</h4>
             <div className="space-y-3 overflow-y-auto h-[calc(100%-2rem)]">
               {actionLog.map((entry, index) => (
-                <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
+                <div
+                  key={index}
+                  className="border-l-4 border-blue-500 pl-4 py-2"
+                >
                   <div className="text-sm text-gray-500">
                     {entry.timestamp.toLocaleTimeString()}
                   </div>
-                  {entry.type === 'place_droplets' ? (
+                  {entry.type === "place_droplets" ? (
                     <div className="flex justify-between items-start">
                       <div>
                         <span className="font-medium">Place Droplets</span>
@@ -169,19 +178,27 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
                         </span>
                       </div>
                       <div className="bg-blue-50 rounded-lg p-2 ml-4">
-                        <div className="text-sm font-medium text-blue-800 mb-1">Drop Counts:</div>
+                        <div className="text-sm font-medium text-blue-800 mb-1">
+                          Drop Counts:
+                        </div>
                         <div className="grid grid-cols-3 gap-3 text-sm">
                           <div className="flex flex-col items-center">
                             <div className="w-3 h-3 rounded-full bg-red-500 mb-1" />
-                            <span className="font-mono">{entry.drops?.[0]}</span>
+                            <span className="font-mono">
+                              {entry.drops?.[0]}
+                            </span>
                           </div>
                           <div className="flex flex-col items-center">
                             <div className="w-3 h-3 rounded-full bg-green-500 mb-1" />
-                            <span className="font-mono">{entry.drops?.[1]}</span>
+                            <span className="font-mono">
+                              {entry.drops?.[1]}
+                            </span>
                           </div>
                           <div className="flex flex-col items-center">
                             <div className="w-3 h-3 rounded-full bg-blue-500 mb-1" />
-                            <span className="font-mono">{entry.drops?.[2]}</span>
+                            <span className="font-mono">
+                              {entry.drops?.[2]}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -195,8 +212,8 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
                         </span>
                       </div>
                       <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-2 ml-4">
-                        <div 
-                          className="w-6 h-6 rounded-lg shadow-inner" 
+                        <div
+                          className="w-6 h-6 rounded-lg shadow-inner"
                           style={{ backgroundColor: entry.color }}
                         />
                         <span className="font-mono text-sm">{entry.color}</span>

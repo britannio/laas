@@ -1,14 +1,15 @@
-const API_BASE_URL = 'http://127.0.0.1:5000';
+const API_BASE_URL = "http://127.0.0.1:5001";
+// const API_BASE_URL = "https://8dad-82-163-218-33.ngrok-free.app";
 
 export async function startExperiment(experimentId: string): Promise<Response> {
   const response = await fetch(
     `${API_BASE_URL}/experiments/${experimentId}/start_experiment`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   if (!response.ok) {
