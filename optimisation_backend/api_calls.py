@@ -1,6 +1,6 @@
 import requests
 
-VIRTUAL_LAB_BASE_URL="http://127.0.0.1:5000"
+VIRTUAL_LAB_BASE_URL="http://127.0.0.1:5001"
 
 def add_dyes(well_x: int, well_y: int, drops: list[int]) -> None:
     """Add dyes to a specific well.
