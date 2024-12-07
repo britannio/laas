@@ -1,5 +1,6 @@
 import requests
 
+VIRTUAL_LAB_BASE_URL="http://127.0.0.1:5000"
 
 def add_dyes(well_x: int, well_y: int, drops: list[int]) -> None:
     """Add dyes to a specific well.
@@ -9,7 +10,7 @@ def add_dyes(well_x: int, well_y: int, drops: list[int]) -> None:
         well_y (int): The y-coordinate of the well.
         drops (list[int]): A list of integers representing the drops to add.
     """
-    url = f"http://127.0.0.1:5000/well/{well_x}/{well_y}/add_dyes"
+    url = f"{VIRTUAL_LAB_BASE_URL}/well/{well_x}/{well_y}/add_dyes"
     headers = {"Content-Type": "application/json"}
     data = {"drops": drops}
 
@@ -31,7 +32,7 @@ def get_well_color(well_x: int, well_y: int) -> list[int]:
     Returns:
         list[int]: A list of integers representing the color of the well in the RGB format.
     """
-    url = f"http://127.0.0.1:5000/well/{well_x}/{well_y}/color"
+    url = f"{VIRTUAL_LAB_BASE_URL}/well/{well_x}/{well_y}/color"
 
     response = requests.get(url)
 
