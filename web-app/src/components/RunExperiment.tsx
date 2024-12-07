@@ -5,7 +5,7 @@ import { useExperimentStore } from "../stores/experimentStore";
 import { useEquipmentStore } from "../stores/equipmentStore";
 import { cn } from "../lib/utils";
 import { v4 as uuidv4 } from "uuid";
-import { startExperiment } from "@/lib/experimentApi";
+import { startExperiment, cancelExperiment } from "@/lib/experimentApi";
 
 interface LogEntry {
   timestamp: Date;
@@ -46,21 +46,27 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleCancelExperiment = () => {
+  const handleCancelExperiment = async () => {
     if (confirm("Are you sure you want to cancel the experiment?")) {
-      setIsRunning(false);
-      setStartTime(null);
-      setElapsedTime(0);
-      setActionLog((prev) => [
-        ...prev,
-        {
-          timestamp: new Date(),
-          type: "place_droplets",
-          position: { x: 0, y: 0 },
-          drops: undefined,
-          status: "cancelled",
-        },
-      ]);
+      try {
+        await cancelExperiment();
+        setIsRunning(false);
+        setStartTime(null);
+        setElapsedTime(0);
+        setActionLog((prev) => [
+          ...prev,
+          {
+            timestamp: new Date(),
+            type: "place_droplets",
+            position: { x: 0, y: 0 },
+            drops: undefined,
+            status: "cancelled",
+          },
+        ]);
+      } catch (error) {
+        console.error("Failed to cancel experiment:", error);
+        alert("Failed to cancel experiment. Please try again.");
+      }
     }
   };
 

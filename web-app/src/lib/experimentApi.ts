@@ -1,6 +1,21 @@
 const API_BASE_URL = "http://127.0.0.1:5001";
 // const API_BASE_URL = "https://8dad-82-163-218-33.ngrok-free.app";
 
+export async function cancelExperiment(): Promise<Response> {
+  const response = await fetch(`${API_BASE_URL}/cancel_experiment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to cancel experiment: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function startExperiment(experimentId: string): Promise<Response> {
   const response = await fetch(
     `${API_BASE_URL}/experiments/${experimentId}/start_experiment`,
