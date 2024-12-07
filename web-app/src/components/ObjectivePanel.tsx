@@ -1,7 +1,7 @@
 import { useExperimentStore } from '../stores/experimentStore';
 import { cn } from '../lib/utils';
 
-export function ObjectivePanel({ onNext }: { onNext: () => void }) {
+export function ObjectivePanel({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   const objective = useExperimentStore((state) => state.objective);
   const setObjective = useExperimentStore((state) => state.setObjective);
 
@@ -63,7 +63,16 @@ export function ObjectivePanel({ onNext }: { onNext: () => void }) {
         </div>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-between">
+        <button
+          onClick={onBack}
+          className={cn(
+            "px-4 py-2 rounded-lg font-medium",
+            "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          )}
+        >
+          Back
+        </button>
         <button
           onClick={onNext}
           disabled={!objective}

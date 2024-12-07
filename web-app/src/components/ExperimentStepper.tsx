@@ -111,6 +111,9 @@ export function ExperimentStepper() {
                 if (canProceed(currentStep)) {
                   setCurrentStep(prev => prev + 1);
                 }
+              },
+              onBack: () => {
+                setCurrentStep(prev => Math.max(0, prev - 1));
               }
             })}
           </div>

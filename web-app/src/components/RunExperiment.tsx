@@ -5,7 +5,7 @@ import { useExperimentStore } from '../stores/experimentStore';
 import { useEquipmentStore } from '../stores/equipmentStore';
 import { cn } from '../lib/utils';
 
-export function RunExperiment() {
+export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   
@@ -75,7 +75,21 @@ export function RunExperiment() {
         )}
         
         <div className="flex justify-between items-center">
-          <ExperimentControls />
+          <div className="flex space-x-4">
+            <button
+              onClick={onBack}
+              disabled={isRunning}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium",
+                isRunning
+                  ? "bg-gray-100 text-gray-400"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              )}
+            >
+              Back
+            </button>
+            <ExperimentControls />
+          </div>
           
           <button
             onClick={handleStartExperiment}

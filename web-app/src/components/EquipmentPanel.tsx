@@ -2,7 +2,7 @@ import { equipmentIcons } from '../lib/icons';
 import { useEquipmentStore } from '../stores/equipmentStore';
 import { cn } from '../lib/utils';
 
-export function EquipmentPanel({ onNext }: { onNext: () => void }) {
+export function EquipmentPanel({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   const equipment = useEquipmentStore((state) => state.equipment);
   const toggleEquipment = useEquipmentStore((state) => state.toggleEquipment);
 
@@ -59,7 +59,16 @@ export function EquipmentPanel({ onNext }: { onNext: () => void }) {
         })}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between">
+        <button
+          onClick={onBack}
+          className={cn(
+            "px-4 py-2 rounded-lg font-medium",
+            "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          )}
+        >
+          Back
+        </button>
         <button
           onClick={onNext}
           disabled={Object.values(equipment).filter(eq => eq.status === 'idle').length === 0}

@@ -1,7 +1,7 @@
 import { useExperimentStore } from '../stores/experimentStore';
 import { cn } from '../lib/utils';
 
-export function OptimizerPanel({ onNext }: { onNext: () => void }) {
+export function OptimizerPanel({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
   const optimizer = useExperimentStore((state) => state.optimizer);
   const setOptimizer = useExperimentStore((state) => state.setOptimizer);
 
@@ -53,7 +53,16 @@ export function OptimizerPanel({ onNext }: { onNext: () => void }) {
         ))}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between">
+        <button
+          onClick={onBack}
+          className={cn(
+            "px-4 py-2 rounded-lg font-medium",
+            "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          )}
+        >
+          Back
+        </button>
         <button
           onClick={onNext}
           disabled={!optimizer}
