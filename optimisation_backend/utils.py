@@ -7,7 +7,7 @@ def well_num_to_x_y(num: int) -> tuple[int, int]:
     Returns:
         tuple[int, int]: The x, y coordinates.
     """
-    return num // 8, num % 8
+    return num // 12, num % 12
 
 
 def convert_hex_to_rgb(hex: str) -> list[int]:
