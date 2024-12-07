@@ -4,11 +4,10 @@ import type { WellData } from '@/types/experiment';
 
 interface WellPlateProps {
   wells: Record<string, WellData>;
-  activeWell?: { x: number; y: number };
   onWellClick?: (x: number, y: number) => void;
 }
 
-export const WellPlate = memo(({ wells, activeWell, onWellClick }: WellPlateProps) => {
+export const WellPlate = memo(({ wells, onWellClick }: WellPlateProps) => {
   return (
     <div className="relative">
       {/* Column labels (0-11) */}
@@ -45,7 +44,6 @@ export const WellPlate = memo(({ wells, activeWell, onWellClick }: WellPlateProp
                 className={cn(
                   'aspect-square rounded-full transition-all',
                   'border-2',
-                  isActive && 'ring-2 ring-blue-300',
                   isOccupied 
                     ? 'border-gray-400 hover:border-gray-600' 
                     : 'border-gray-300 hover:border-gray-400',

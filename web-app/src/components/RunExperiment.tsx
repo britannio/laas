@@ -79,49 +79,56 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex flex-col h-full gap-6">
-      {/* Controls moved to top */}
       <div className="flex justify-between items-center">
-        <div className="flex space-x-4">
-          <button
-            onClick={onBack}
-            disabled={isRunning}
-            className={cn(
-              "px-4 py-2 rounded-lg font-medium",
-              isRunning
-                ? "bg-gray-100 text-gray-400"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            )}
-          >
-            Back
-          </button>
-          <ExperimentControls />
-        </div>
-        
-        <div className="flex space-x-4">
-          {isRunning && (
-            <button
-              onClick={handleCancelExperiment}
-              className={cn(
-                "px-4 py-2 rounded-lg font-medium",
-                "bg-red-100 text-red-600 hover:bg-red-200"
-              )}
-            >
-              Cancel Experiment
-            </button>
+        <button
+          onClick={onBack}
+          disabled={isRunning}
+          className={cn(
+            "px-4 py-2 rounded-lg font-medium",
+            isRunning
+              ? "bg-gray-100 text-gray-400"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           )}
-          <button
-            onClick={handleStartExperiment}
-            disabled={isRunning}
-            className={cn(
-              "px-4 py-2 rounded-lg font-medium",
-              isRunning
-                ? "bg-gray-100 text-gray-400"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            )}
-          >
-            {isRunning ? 'Running...' : 'Start Experiment'}
-          </button>
-        </div>
+        >
+          Back
+        </button>
+        
+        <button
+          onClick={() => {
+            if (isRunning) {
+              if (confirm('Are you sure you want to cancel the experiment?')) {
+                setIsRunning(false);
+                setStartTime(null);
+                setElapsedTime(0);
+                setActionLog(prev => [...prev, {
+                  timestamp: new Date(),
+                  type: 'place_droplets',
+                  position: { x: 0, y: 0 },
+                  status: 'cancelled'
+                }]);
+              }
+            } else {
+              setIsRunning(true);
+              setStartTime(new Date());
+              setActionLog([
+                {
+                  timestamp: new Date(),
+                  type: 'place_droplets',
+                  position: { x: 0, y: 0 },
+                  drops: [2, 1, 1]
+                }
+              ]);
+            }
+          }}
+          className={cn(
+            "px-4 py-2 rounded-lg font-medium",
+            isRunning
+              ? "bg-red-100 text-red-600 hover:bg-red-200"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          )}
+        >
+          {isRunning ? 'Cancel Experiment' : 'Start Experiment'}
+        </button>
       </div>
 
       {/* Main content area */}
@@ -132,7 +139,6 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
             <div className="transform rotate-90 lg:rotate-0 w-full h-full">
               <WellPlate
                 wells={wells}
-                activeWell={activeWell}
                 onWellClick={(x, y) => console.log(`Clicked well: ${x},${y}`)}
               />
             </div>
