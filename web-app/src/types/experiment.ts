@@ -38,6 +38,7 @@ export interface Optimizer {
 }
 
 export interface Objective {
-  type: 'targetSaturation' | 'targetIntensity';
-  value?: number; // The target value to achieve
+  type: 'targetSaturation' | 'targetIntensity' | 'targetColor';
+  value?: number; // For saturation/intensity
+  color?: string; // For target color (hex value)
 }
