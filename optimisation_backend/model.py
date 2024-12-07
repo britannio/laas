@@ -11,8 +11,13 @@ class Well:
 
 
 class ActionLog:
-    def __init__(self):
-        """Initializes an ActionLog with an empty list of actions."""
+    def __init__(self, experiment_id: str):
+        """Initializes an ActionLog with an empty list of actions.
+        
+        Args:
+            experiment_id (str): The ID of the experiment this log belongs to
+        """
+        self.experiment_id = experiment_id
         self.actions: List[Dict[str, Any]] = []
 
     def add_action(self, action_type: str, data: Dict[str, Any]) -> None:
@@ -22,7 +27,11 @@ class ActionLog:
             action_type (str): The type of action (e.g., 'place', 'read').
             data (Dict[str, Any]): The data associated with the action.
         """
-        self.actions.append({"type": action_type, "data": data})
+        self.actions.append({
+            "type": action_type, 
+            "data": data,
+            "experiment_id": self.experiment_id
+        })
 
 
 class VirtualLab:
@@ -30,8 +39,9 @@ class VirtualLab:
         """Initializes a VirtualLab with a 96-well plate and predefined dye colors."""
         # Initialize 96-well plate (8x12 standard layout)
         self.plate: List[List[Well]] = [[Well() for _ in range(12)] for _ in range(8)]
-        self.action_log = ActionLog()
+        self.action_logs: Dict[str, ActionLog] = {}  # Store logs by experiment ID
         self.experiment_completeness_ratio = 0
+        self.current_experiment_id: Optional[str] = None
 
         # Define dye colors [R, G, B]
         self.dyes: List[List[float]] = [
@@ -39,6 +49,16 @@ class VirtualLab:
             [0.0, 1.0, 0.0],  # Dye B
             [0.0, 0.0, 1.0],  # Dye C
         ]
+
+    def set_current_experiment(self, experiment_id: str) -> None:
+        """Sets the current experiment ID and creates a new action log if needed.
+        
+        Args:
+            experiment_id (str): The ID of the experiment to set as current
+        """
+        self.current_experiment_id = experiment_id
+        if experiment_id not in self.action_logs:
+            self.action_logs[experiment_id] = ActionLog(experiment_id)
 
     def validate_position(self, x: int, y: int) -> bool:
         """Validates if the given position is within the bounds of the plate.
@@ -63,7 +83,7 @@ class VirtualLab:
         Returns:
             bool: True if the dyes were added successfully, False otherwise.
         """
-        if not self.validate_position(x, y):
+        if not self.validate_position(x, y) or self.current_experiment_id is None:
             return False
 
         well = self.plate[x][y]
@@ -79,7 +99,7 @@ class VirtualLab:
         well.color = np.clip(well.color, 0, 1)
 
         # Log the action
-        self.action_log.add_action(
+        self.action_logs[self.current_experiment_id].add_action(
             "place",
             {
                 "x": x,
@@ -91,17 +111,14 @@ class VirtualLab:
         return True
 
     def add_well_color_reading(self, x: int, y: int, rgb: Tuple[int, int, int]) -> None:
-        """Logs a color reading action for a specific well.
+        """Logs a color reading action for a specific well."""
+        if self.current_experiment_id is None:
+            return
 
-        Args:
-            x (int): The row index.
-            y (int): The column index.
-            rgb (Tuple[int, int, int]): The RGB color values.
-        """
         hex_color = "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
 
         # Log the action
-        self.action_log.add_action(
+        self.action_logs[self.current_experiment_id].add_action(
             "read",
             {
                 "x": x,

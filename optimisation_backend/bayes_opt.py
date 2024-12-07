@@ -11,7 +11,12 @@ class BayesOpt:
     """Bayesian Optimization class for optimizing dye combinations."""
 
     def __init__(
-        self, model, target: list[int], n_calls: int, space: list[Dimension] | None = None
+        self, 
+        model, 
+        target: list[int], 
+        n_calls: int, 
+        experiment_id: str,
+        space: list[Dimension] | None = None
     ):
         """Initializes the BayesOpt class with the given parameters.
 
@@ -28,6 +33,7 @@ class BayesOpt:
         self.n_calls = n_calls
         self.space = space
         self.random_state = 42
+        self.model.set_current_experiment(experiment_id)
 
         if space is None:  # drops search space
             self.space = [
