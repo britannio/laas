@@ -1,7 +1,7 @@
 import { useExperimentStore } from '../stores/experimentStore';
 import { cn } from '../lib/utils';
 
-export function ObjectivePanel() {
+export function ObjectivePanel({ onNext }: { onNext: () => void }) {
   const objective = useExperimentStore((state) => state.objective);
   const setObjective = useExperimentStore((state) => state.setObjective);
 
@@ -62,6 +62,21 @@ export function ObjectivePanel() {
           </div>
         </div>
       )}
+
+      <div className="flex justify-end">
+        <button
+          onClick={onNext}
+          disabled={!objective}
+          className={cn(
+            "px-4 py-2 rounded-lg font-medium",
+            !objective
+              ? "bg-gray-100 text-gray-400"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          )}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

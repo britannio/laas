@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useExperimentStore } from '../stores/experimentStore';
 import { useEquipmentStore } from '../stores/equipmentStore';
 import { EquipmentPanel } from './EquipmentPanel';
@@ -39,18 +39,20 @@ export function ExperimentStepper() {
   const objective = useExperimentStore((state) => state.objective);
   const optimizer = useExperimentStore((state) => state.optimizer);
 
-  // Determine current step based on completion status
-  const getCurrentStep = () => {
-    const hasSelectedEquipment = Object.values(equipment).some(
-      (eq) => eq.status === 'idle'
-    );
-    if (!hasSelectedEquipment) return 0;
-    if (!objective) return 1;
-    if (!optimizer) return 2;
-    return 3;
-  };
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const currentStep = getCurrentStep();
+  const canProceed = (step: number) => {
+    switch (step) {
+      case 0: // Equipment selection
+        return Object.values(equipment).some(eq => eq.status === 'idle');
+      case 1: // Objective
+        return !!objective;
+      case 2: // Optimizer
+        return !!optimizer;
+      default:
+        return false;
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -104,7 +106,13 @@ export function ExperimentStepper() {
       <div className="bg-white rounded-lg shadow-sm p-6">
         {steps[currentStep].component && (
           <div>
-            {React.createElement(steps[currentStep].component)}
+            {React.createElement(steps[currentStep].component, {
+              onNext: () => {
+                if (canProceed(currentStep)) {
+                  setCurrentStep(prev => prev + 1);
+                }
+              }
+            })}
           </div>
         )}
       </div>

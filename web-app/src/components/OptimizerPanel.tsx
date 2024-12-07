@@ -1,7 +1,7 @@
 import { useExperimentStore } from '../stores/experimentStore';
 import { cn } from '../lib/utils';
 
-export function OptimizerPanel() {
+export function OptimizerPanel({ onNext }: { onNext: () => void }) {
   const optimizer = useExperimentStore((state) => state.optimizer);
   const setOptimizer = useExperimentStore((state) => state.setOptimizer);
 
@@ -50,6 +50,21 @@ export function OptimizerPanel() {
           <div className="text-xs text-blue-500 font-medium">Coming Soon</div>
         </div>
       ))}
+    </div>
+
+    <div className="flex justify-end mt-6">
+      <button
+        onClick={onNext}
+        disabled={!optimizer}
+        className={cn(
+          "px-4 py-2 rounded-lg font-medium",
+          !optimizer
+            ? "bg-gray-100 text-gray-400"
+            : "bg-blue-600 text-white hover:bg-blue-700"
+        )}
+      >
+        Next
+      </button>
     </div>
   );
 }
