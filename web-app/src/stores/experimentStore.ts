@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { WellData, Objective, Optimizer } from '../types/experiment';
+import { create } from "zustand";
+import { WellData, Objective, Optimizer } from "../types/experiment";
 
 interface ExperimentState {
   wells: Record<string, WellData>;
@@ -14,18 +14,18 @@ interface ExperimentState {
 export const useExperimentStore = create<ExperimentState>((set) => ({
   wells: {
     // Test data for first few wells
-    "0,0": { 
-      color: "#FF8844", 
-      drops: [2, 1, 1] 
-    },
-    "1,0": { 
-      color: "#7733FF", 
-      drops: [1, 3, 2] 
-    },
-    "0,1": { 
-      color: "#44FF88", 
-      drops: [1, 2, 1] 
-    }
+    // "0,0": {
+    //   color: "#FF8844",
+    //   drops: [2, 1, 1]
+    // },
+    // "1,0": {
+    //   color: "#7733FF",
+    //   drops: [1, 3, 2]
+    // },
+    // "0,1": {
+    //   color: "#44FF88",
+    //   drops: [1, 2, 1]
+    // }
   },
   objective: null,
   optimizer: null,
@@ -43,9 +43,9 @@ export const useExperimentStore = create<ExperimentState>((set) => ({
       wells: {
         ...state.wells,
         [`${x},${y}`]: {
-          ...state.wells[`${x},${y}`] || {},
-          color
-        }
-      }
-    }))
+          ...(state.wells[`${x},${y}`] || {}),
+          color,
+        },
+      },
+    })),
 }));
