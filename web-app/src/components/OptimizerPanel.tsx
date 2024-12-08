@@ -14,23 +14,23 @@ export function OptimizerPanel({
   const optimizers = [
     {
       type: "bayesian",
-      title: "Bayesian Optimization",
+      title: "Bayesian Optimisation",
       description: "Efficient parameter space exploration",
     },
     {
       type: "rsm",
       title: "Response Surface Methodology",
-      description: "Statistical technique for process optimization",
+      description: "Statistical technique for process optimisation",
     },
     {
       type: "nelder-mead",
       title: "Nelder-Mead Simplex",
-      description: "Direct search method for optimization",
+      description: "Direct search method for optimisation",
     },
     {
       type: "pso",
-      title: "Particle Swarm Optimization",
-      description: "Population-based optimization algorithm",
+      title: "Particle Swarm Optimisation",
+      description: "Population-based optimisation algorithm",
     },
   ] as const;
 
