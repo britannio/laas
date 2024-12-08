@@ -31,10 +31,14 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
     null,
   );
+  const [optimalCombo, setOptimalCombo] = useState<[number, number, number]>();
 
   const wells = useExperimentStore((state) => state.wells);
   const setWellColor = useExperimentStore((state) => state.setWellColor);
   const clearWells = useExperimentStore((state) => state.clearWells);
+  const objective = useExperimentStore((state) => state.objective);
+  const optimizer = useExperimentStore((state) => state.optimizer);
+  const equipment = useEquipmentStore((state) => state.equipment);
 
   const getWellColorsFromLog = useCallback((logEntries: LogEntry[]) => {
     const wellColors: Record<string, string> = {};
@@ -60,10 +64,6 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       setWellColor(x, y, color); // Use store setter to update colors
     });
   }, [actionLog, getWellColorsFromLog, setWellColor]); // Include setWellColor in dependencies
-  const objective = useExperimentStore((state) => state.objective);
-  const optimizer = useExperimentStore((state) => state.optimizer);
-  const equipment = useEquipmentStore((state) => state.equipment);
-
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRunning && startTime) {
@@ -121,17 +121,23 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
       // Check if experiment is complete
       if (status.status === "completed") {
+        if (status.result?.optimal_combo) {
+          setOptimalCombo(status.result.optimal_combo);
+        }
         console.log("Experiment completed, stopping polling");
+        
+        // Stop polling - clear both the interval and the state
         if (pollingInterval) {
           clearInterval(pollingInterval);
-          setPollingInterval(null);
         }
+        setPollingInterval(null);
         setIsRunning(false);
         setExperimentId(null);
         experimentIdRef.current = null;
         
         // Optional: Show completion message
         alert("Experiment completed successfully!");
+        return; // Exit the polling function
       }
 
       console.log("=== Poll Complete ===");
@@ -155,7 +161,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         experimentIdRef.current = null;
       }
     }
-  }, [pollingInterval]); // Add pollingInterval to dependencies
+  }, [pollingInterval, setPollingInterval]); // Add setPollingInterval to dependencies
 
   const handleCancelExperiment = async () => {
     console.log("Cancel button clicked");
@@ -200,13 +206,26 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       console.log("=== Starting New Experiment ===");
       console.log("Generated ID:", newExperimentId);
 
+      // Get the target color from the objective
+      if (!objective?.color) {
+        throw new Error("No target color specified");
+      }
+
+      // Get the configured step count from optimizer
+      const maxSteps = optimizer?.steps || DEFAULT_MAX_STEPS;
+      console.log("Using max steps:", maxSteps);
+
       // Set both state and ref
       setExperimentId(newExperimentId);
       experimentIdRef.current = newExperimentId;
 
-      // Start the experiment
+      // Start the experiment with the target color and step count
       console.log("Calling startExperiment API...");
-      const response = await startExperiment(newExperimentId);
+      const response = await startExperiment(
+        newExperimentId,
+        objective.color,
+        maxSteps  // Pass the configured step count
+      );
       console.log("Start experiment response:", response);
 
       // Update state
@@ -274,65 +293,6 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         >
           {isRunning ? "Cancel Experiment" : "Start Experiment"}
         </button>
-
-        {experimentId && (
-          <>
-            <button
-              onClick={async () => {
-                try {
-                  const logEntries = await getExperimentActionLog(experimentId);
-                  console.log("Raw API response:", logEntries); // Debug log
-
-                  // Guard against undefined/null response
-                  if (!Array.isArray(logEntries)) {
-                    console.error(
-                      "Unexpected API response format:",
-                      logEntries,
-                    );
-                    return;
-                  }
-
-                  const formattedLog: LogEntry[] = logEntries.map((entry) => ({
-                    timestamp: new Date(entry.timestamp * 1000),
-                    type:
-                      entry.type === "place" ? "place_droplets" : "get_color",
-                    position: { x: entry.data.x, y: entry.data.y },
-                    drops:
-                      entry.type === "place"
-                        ? entry.data.droplet_counts
-                        : undefined,
-                    color: entry.type === "read" ? entry.data.color : undefined,
-                  }));
-
-                  console.log("Formatted log:", formattedLog); // Debug log
-                  setActionLog(formattedLog);
-                } catch (error) {
-                  console.error("Failed to fetch action log:", error);
-                  alert(
-                    "Failed to fetch action log. Check console for details.",
-                  );
-                }
-              }}
-              className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
-            >
-              Debug: Fetch Log
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  const status = await getExperimentStatus(experimentId);
-                  console.log("Experiment status:", status);
-                } catch (error) {
-                  console.error("Failed to fetch experiment status:", error);
-                  alert("Failed to fetch status. Check console for details.");
-                }
-              }}
-              className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
-            >
-              Debug: Get Status
-            </button>
-          </>
-        )}
       </div>
 
       {/* Main content area */}
@@ -351,7 +311,11 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
         {/* Right column - Action Log */}
         <div className="h-full overflow-hidden">
-          <ActionLog entries={actionLog} elapsedTime={elapsedTime} />
+          <ActionLog 
+            entries={actionLog} 
+            elapsedTime={elapsedTime}
+            optimalCombo={optimalCombo}
+          />
         </div>
       </div>
     </div>

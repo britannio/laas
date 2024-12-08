@@ -1,6 +1,8 @@
 const API_BASE_URL = "http://127.0.0.1:5001";
 // const API_BASE_URL = "https://8dad-82-163-218-33.ngrok-free.app";
 
+export const DEFAULT_MAX_STEPS = 20;
+
 export async function cancelExperiment(): Promise<Response> {
   const response = await fetch(`${API_BASE_URL}/cancel_experiment`, {
     method: "POST",
@@ -16,9 +18,19 @@ export async function cancelExperiment(): Promise<Response> {
   return response.json();
 }
 
-export async function startExperiment(experimentId: string): Promise<Response> {
+export async function startExperiment(
+  experimentId: string,
+  targetColor: string,
+  maxSteps: number = DEFAULT_MAX_STEPS
+): Promise<Response> {
+  // Convert hex color to RGB
+  const hex = targetColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
   const response = await fetch(
-    `${API_BASE_URL}/experiments/${experimentId}/start_experiment`,
+    `${API_BASE_URL}/experiments/${experimentId}/optimize/${r}/${g}/${b}/${maxSteps}`,
     {
       method: "POST",
       headers: {
@@ -49,7 +61,12 @@ interface ActionLogEntry {
   type: "place" | "read";
 }
 
-export async function getExperimentStatus(experimentId: string): Promise<{status: string}> {
+export async function getExperimentStatus(experimentId: string): Promise<{
+  status: string;
+  result?: {
+    optimal_combo: [number, number, number];
+  };
+}> {
   const response = await fetch(
     `${API_BASE_URL}/experiments/${experimentId}/status`,
     {
