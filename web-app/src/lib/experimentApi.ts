@@ -49,7 +49,9 @@ interface ActionLogEntry {
   type: "place" | "read";
 }
 
-export async function getExperimentActionLog(experimentId: string): Promise<ActionLogEntry[]> {
+export async function getExperimentActionLog(
+  experimentId: string,
+): Promise<ActionLogEntry[]> {
   const response = await fetch(
     `${API_BASE_URL}/experiments/${experimentId}/action_log`,
     {
@@ -68,5 +70,5 @@ export async function getExperimentActionLog(experimentId: string): Promise<Acti
   console.log("API Response:", data); // Debug log
 
   // Check if data.log exists, otherwise return empty array
-  return data.log || [];
+  return data || [];
 }

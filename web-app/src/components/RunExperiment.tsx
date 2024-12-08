@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { WellPlate } from "./WellPlate";
 import { ActionLog } from "./ActionLog";
-import { ExperimentControls } from "./ExperimentControls";
+// import { ExperimentControls } from "./ExperimentControls";
 import { useExperimentStore } from "../stores/experimentStore";
 import { useEquipmentStore } from "../stores/equipmentStore";
 import { cn } from "../lib/utils";
 import { v4 as uuidv4 } from "uuid";
-import { startExperiment, cancelExperiment, getExperimentActionLog } from "@/lib/experimentApi";
+import {
+  startExperiment,
+  cancelExperiment,
+  getExperimentActionLog,
+} from "@/lib/experimentApi";
 
 interface LogEntry {
   timestamp: Date;
@@ -29,25 +33,25 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
   const getWellColorsFromLog = useCallback((logEntries: LogEntry[]) => {
     const wellColors: Record<string, string> = {};
-    
+
     // Process log entries in chronological order to get latest color for each well
-    logEntries.forEach(entry => {
+    logEntries.forEach((entry) => {
       if (entry.type === "get_color" && entry.color) {
         const wellKey = `${entry.position.x},${entry.position.y}`;
         wellColors[wellKey] = entry.color;
       }
     });
-    
+
     return wellColors;
   }, []);
 
   // Update the wells whenever the action log changes
   useEffect(() => {
     const wellColors = getWellColorsFromLog(actionLog);
-    
+
     // Update the wells in the experiment store using setWellColor
     Object.entries(wellColors).forEach(([key, color]) => {
-      const [x, y] = key.split(',').map(Number);
+      const [x, y] = key.split(",").map(Number);
       setWellColor(x, y, color); // Use store setter to update colors
     });
   }, [actionLog, getWellColorsFromLog, setWellColor]); // Include setWellColor in dependencies
@@ -66,7 +70,6 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     }
     return () => clearInterval(interval);
   }, [isRunning, startTime]);
-
 
   const handleCancelExperiment = async () => {
     console.log("Cancel button clicked");
@@ -162,21 +165,24 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
               try {
                 const logEntries = await getExperimentActionLog(experimentId);
                 console.log("Raw API response:", logEntries); // Debug log
-                
+
                 // Guard against undefined/null response
                 if (!Array.isArray(logEntries)) {
                   console.error("Unexpected API response format:", logEntries);
                   return;
                 }
 
-                const formattedLog: LogEntry[] = logEntries.map(entry => ({
+                const formattedLog: LogEntry[] = logEntries.map((entry) => ({
                   timestamp: new Date(entry.timestamp * 1000),
                   type: entry.type === "place" ? "place_droplets" : "get_color",
                   position: { x: entry.data.x, y: entry.data.y },
-                  drops: entry.type === "place" ? entry.data.droplet_counts : undefined,
+                  drops:
+                    entry.type === "place"
+                      ? entry.data.droplet_counts
+                      : undefined,
                   color: entry.type === "read" ? entry.data.color : undefined,
                 }));
-                
+
                 console.log("Formatted log:", formattedLog); // Debug log
                 setActionLog(formattedLog);
               } catch (error) {
