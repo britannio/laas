@@ -1,4 +1,6 @@
-import { LogEntry } from "./RunExperiment"; // You might want to move this interface to a separate types file
+import { LogEntry } from "./RunExperiment";
+import { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ActionLogProps {
   entries: LogEntry[];
@@ -7,6 +9,15 @@ interface ActionLogProps {
 }
 
 export function ActionLog({ entries, elapsedTime, optimalCombo }: ActionLogProps) {
+  // Add a ref for the scrollable container
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [entries]);
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -54,14 +65,29 @@ export function ActionLog({ entries, elapsedTime, optimalCombo }: ActionLogProps
       {/* Action Log */}
       <div className="bg-white rounded-lg shadow-sm p-4 flex-grow overflow-hidden">
         <h4 className="font-medium text-gray-700 mb-4">Action Log</h4>
-        <div className="space-y-3 overflow-y-auto h-[calc(100%-2rem)]">
-          {entries.map((entry, index) => (
-            <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
+        <div 
+          ref={scrollRef}
+          className="space-y-3 overflow-y-auto h-[calc(100%-2rem)] scroll-smooth"
+        >
+          <AnimatePresence initial={false}>
+            {entries.map((entry, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="border-l-4 border-blue-500 pl-4 py-2"
+              >
               <div className="text-sm text-gray-500">
                 {entry.timestamp.toLocaleTimeString()}
               </div>
               {entry.type === "place_droplets" ? (
-                <div className="flex justify-between items-start">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-between items-start"
+                >
                   <div>
                     <span className="font-medium">Place Droplets</span>
                     <span className="text-gray-600">
@@ -87,9 +113,13 @@ export function ActionLog({ entries, elapsedTime, optimalCombo }: ActionLogProps
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ) : (
-                <div className="flex justify-between items-center">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-between items-center"
+                >
                   <div>
                     <span className="font-medium">Read Color</span>
                     <span className="text-gray-600">
@@ -103,10 +133,11 @@ export function ActionLog({ entries, elapsedTime, optimalCombo }: ActionLogProps
                     />
                     <span className="font-mono text-sm">{entry.color}</span>
                   </div>
-                </div>
+                </motion.div>
               )}
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </div>
