@@ -49,7 +49,7 @@ interface ActionLogEntry {
   type: "place" | "read";
 }
 
-export async function getExperimentStatus(experimentId: string): Promise<Response> {
+export async function getExperimentStatus(experimentId: string): Promise<{status: string}> {
   const response = await fetch(
     `${API_BASE_URL}/experiments/${experimentId}/status`,
     {
@@ -64,7 +64,7 @@ export async function getExperimentStatus(experimentId: string): Promise<Respons
     throw new Error(`Failed to fetch experiment status: ${response.statusText}`);
   }
 
-  return response.json();
+  return response.json();  // Return the parsed JSON directly
 }
 
 export async function getExperimentActionLog(

@@ -77,11 +77,14 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     if (!experimentId) return;
     
     try {
-      const response = await getExperimentStatus(experimentId);
-      const status = await response.json();
+      console.log('Polling status for experiment:', experimentId);
+      const status = await getExperimentStatus(experimentId);
+      console.log('Received status:', status);
       
       // Always fetch the action log
       const logEntries = await getExperimentActionLog(experimentId);
+      console.log('Received log entries:', logEntries);
+      
       if (Array.isArray(logEntries)) {
         const formattedLog: LogEntry[] = logEntries.map((entry) => ({
           timestamp: new Date(entry.timestamp * 1000),
@@ -90,11 +93,13 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           drops: entry.type === "place" ? entry.data.droplet_counts : undefined,
           color: entry.type === "read" ? entry.data.color : undefined,
         }));
+        console.log('Setting formatted log:', formattedLog);
         setActionLog(formattedLog);
       }
 
       // If experiment is complete, clean up
       if (status.status === 'completed') {
+        console.log('Experiment completed, cleaning up');
         if (pollingInterval) {
           clearInterval(pollingInterval);
           setPollingInterval(null);
@@ -143,15 +148,18 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const handleStartExperiment = async () => {
     try {
       const newExperimentId = uuidv4();
+      console.log('Starting experiment with ID:', newExperimentId);
       setExperimentId(newExperimentId);
       await startExperiment(newExperimentId);
       setIsRunning(true);
       setStartTime(new Date());
       setActionLog([]);
 
-      // Start polling
+      // Start polling immediately and then every second
+      await pollExperimentStatus(); // Poll once immediately
       const interval = setInterval(pollExperimentStatus, 1000);
       setPollingInterval(interval);
+      console.log('Started polling with interval:', interval);
     } catch (error) {
       console.error("Failed to start experiment:", error);
       alert("Failed to start experiment. Please try again.");
