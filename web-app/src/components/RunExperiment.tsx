@@ -38,6 +38,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
     return totalCost.toFixed(2);
   }, []);
+  const [useLLM, setUseLLM] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -236,11 +237,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
       // Start the experiment with the target color and step count
       console.log("Calling startExperiment API...");
-      const response = await startExperiment(
-        newExperimentId,
-        objective.color,
-        maxSteps  // Pass the configured step count
-      );
+      const response = useLLM 
+        ? await startExperimentLLM(newExperimentId, objective.color, maxSteps)
+        : await startExperiment(newExperimentId, objective.color, maxSteps);
       console.log("Start experiment response:", response);
 
       // Update state
@@ -291,23 +290,36 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           Back
         </button>
 
-        <button
-          onClick={() => {
-            if (isRunning) {
-              handleCancelExperiment();
-            } else {
-              handleStartExperiment();
-            }
-          }}
-          className={cn(
-            "px-4 py-2 rounded-lg font-medium",
-            isRunning
-              ? "bg-red-100 text-red-600 hover:bg-red-200"
-              : "bg-blue-600 text-white hover:bg-blue-700",
-          )}
-        >
-          {isRunning ? "Cancel Experiment" : "Start Experiment"}
-        </button>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Use LLM Optimization</span>
+            <input
+              type="checkbox"
+              checked={useLLM}
+              onChange={(e) => setUseLLM(e.target.checked)}
+              disabled={isRunning}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+            />
+          </label>
+
+          <button
+            onClick={() => {
+              if (isRunning) {
+                handleCancelExperiment();
+              } else {
+                handleStartExperiment();
+              }
+            }}
+            className={cn(
+              "px-4 py-2 rounded-lg font-medium",
+              isRunning
+                ? "bg-red-100 text-red-600 hover:bg-red-200"
+                : "bg-blue-600 text-white hover:bg-blue-700",
+            )}
+          >
+            {isRunning ? "Cancel Experiment" : "Start Experiment"}
+          </button>
+        </div>
       </div>
 
       {/* Main content area */}
