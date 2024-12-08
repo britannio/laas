@@ -107,30 +107,30 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         return;
       }
 
-      const formattedLog: LogEntry[] = logEntries.map((entry) => {
-        console.log("Processing log entry:", entry);
-        return {
-          timestamp: new Date(entry.timestamp * 1000),
-          type: entry.type === "place" ? "place_droplets" : "get_color",
-          position: { x: entry.data.x, y: entry.data.y },
-          drops: entry.type === "place" ? entry.data.droplet_counts : undefined,
-          color: entry.type === "read" ? entry.data.color : undefined,
-        };
-      });
+      const formattedLog: LogEntry[] = logEntries.map((entry) => ({
+        timestamp: new Date(entry.timestamp * 1000),
+        type: entry.type === "place" ? "place_droplets" : "get_color",
+        position: { x: entry.data.x, y: entry.data.y },
+        drops: entry.type === "place" ? entry.data.droplet_counts : undefined,
+        color: entry.type === "read" ? entry.data.color : undefined,
+      }));
 
       console.log("Setting formatted log:", formattedLog);
       setActionLog(formattedLog);
 
+      // Check if experiment is complete
       if (status.status === "completed") {
-        console.log("Experiment completed, cleaning up");
+        console.log("Experiment completed, stopping polling");
         if (pollingInterval) {
-          console.log("Clearing interval:", pollingInterval);
           clearInterval(pollingInterval);
           setPollingInterval(null);
         }
         setIsRunning(false);
-      } else {
-        console.log("Experiment still running");
+        setExperimentId(null);
+        experimentIdRef.current = null;
+        
+        // Optional: Show completion message
+        alert("Experiment completed successfully!");
       }
 
       console.log("=== Poll Complete ===");
@@ -149,9 +149,12 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           clearInterval(pollingInterval);
           setPollingInterval(null);
         }
+        setIsRunning(false);
+        setExperimentId(null);
+        experimentIdRef.current = null;
       }
     }
-  }, []);
+  }, [pollingInterval]); // Add pollingInterval to dependencies
 
   const handleCancelExperiment = async () => {
     console.log("Cancel button clicked");
