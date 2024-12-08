@@ -49,6 +49,24 @@ interface ActionLogEntry {
   type: "place" | "read";
 }
 
+export async function getExperimentStatus(experimentId: string): Promise<Response> {
+  const response = await fetch(
+    `${API_BASE_URL}/experiments/${experimentId}/status`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch experiment status: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function getExperimentActionLog(
   experimentId: string,
 ): Promise<ActionLogEntry[]> {

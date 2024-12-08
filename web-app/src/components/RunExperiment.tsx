@@ -105,20 +105,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       await startExperiment(newExperimentId);
       setIsRunning(true);
       setStartTime(new Date());
-      setActionLog([
-        {
-          timestamp: new Date(),
-          type: "place_droplets",
-          position: { x: 0, y: 0 },
-          drops: [2, 1, 1],
-        },
-        {
-          timestamp: new Date(Date.now() + 1000), // 1 second later
-          type: "get_color",
-          position: { x: 0, y: 0 },
-          color: "#FF8844",
-        },
-      ]);
+      setActionLog([]); // Start with empty log instead of mock data
     } catch (error) {
       console.error("Failed to start experiment:", error);
       alert("Failed to start experiment. Please try again.");
@@ -160,40 +147,56 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         </button>
 
         {experimentId && (
-          <button
-            onClick={async () => {
-              try {
-                const logEntries = await getExperimentActionLog(experimentId);
-                console.log("Raw API response:", logEntries); // Debug log
+          <>
+            <button
+              onClick={async () => {
+                try {
+                  const logEntries = await getExperimentActionLog(experimentId);
+                  console.log("Raw API response:", logEntries); // Debug log
 
-                // Guard against undefined/null response
-                if (!Array.isArray(logEntries)) {
-                  console.error("Unexpected API response format:", logEntries);
-                  return;
+                  // Guard against undefined/null response
+                  if (!Array.isArray(logEntries)) {
+                    console.error("Unexpected API response format:", logEntries);
+                    return;
+                  }
+
+                  const formattedLog: LogEntry[] = logEntries.map((entry) => ({
+                    timestamp: new Date(entry.timestamp * 1000),
+                    type: entry.type === "place" ? "place_droplets" : "get_color",
+                    position: { x: entry.data.x, y: entry.data.y },
+                    drops:
+                      entry.type === "place"
+                        ? entry.data.droplet_counts
+                        : undefined,
+                    color: entry.type === "read" ? entry.data.color : undefined,
+                  }));
+
+                  console.log("Formatted log:", formattedLog); // Debug log
+                  setActionLog(formattedLog);
+                } catch (error) {
+                  console.error("Failed to fetch action log:", error);
+                  alert("Failed to fetch action log. Check console for details.");
                 }
-
-                const formattedLog: LogEntry[] = logEntries.map((entry) => ({
-                  timestamp: new Date(entry.timestamp * 1000),
-                  type: entry.type === "place" ? "place_droplets" : "get_color",
-                  position: { x: entry.data.x, y: entry.data.y },
-                  drops:
-                    entry.type === "place"
-                      ? entry.data.droplet_counts
-                      : undefined,
-                  color: entry.type === "read" ? entry.data.color : undefined,
-                }));
-
-                console.log("Formatted log:", formattedLog); // Debug log
-                setActionLog(formattedLog);
-              } catch (error) {
-                console.error("Failed to fetch action log:", error);
-                alert("Failed to fetch action log. Check console for details.");
-              }
-            }}
-            className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
-          >
-            Debug: Fetch Log
-          </button>
+              }}
+              className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
+            >
+              Debug: Fetch Log
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const status = await getExperimentStatus(experimentId);
+                  console.log("Experiment status:", status);
+                } catch (error) {
+                  console.error("Failed to fetch experiment status:", error);
+                  alert("Failed to fetch status. Check console for details.");
+                }
+              }}
+              className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
+            >
+              Debug: Get Status
+            </button>
+          </>
         )}
       </div>
 
