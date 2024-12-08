@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { WellPlate } from "./WellPlate";
 import { ActionLog } from "./ActionLog";
 import { ExperimentControls } from "./ExperimentControls";
@@ -25,6 +25,32 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [experimentId, setExperimentId] = useState<string | null>(null);
 
   const wells = useExperimentStore((state) => state.wells);
+  const setWellColor = useExperimentStore((state) => state.setWellColor);
+
+  const getWellColorsFromLog = useCallback((logEntries: LogEntry[]) => {
+    const wellColors: Record<string, string> = {};
+    
+    // Process log entries in chronological order to get latest color for each well
+    logEntries.forEach(entry => {
+      if (entry.type === "get_color" && entry.color) {
+        const wellKey = `${entry.position.x},${entry.position.y}`;
+        wellColors[wellKey] = entry.color;
+      }
+    });
+    
+    return wellColors;
+  }, []);
+
+  // Update the wells whenever the action log changes
+  useEffect(() => {
+    const wellColors = getWellColorsFromLog(actionLog);
+    
+    // Update the wells in the experiment store
+    Object.entries(wellColors).forEach(([key, color]) => {
+      const [x, y] = key.split(',').map(Number);
+      setWellColor(x, y, color);
+    });
+  }, [actionLog, getWellColorsFromLog, setWellColor]);
   const objective = useExperimentStore((state) => state.objective);
   const optimizer = useExperimentStore((state) => state.optimizer);
   const equipment = useEquipmentStore((state) => state.equipment);
