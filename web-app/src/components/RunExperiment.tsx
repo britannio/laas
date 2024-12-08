@@ -28,6 +28,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [actionLog, setActionLog] = useState<LogEntry[]>([]);
   const [experimentId, setExperimentId] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   const wells = useExperimentStore((state) => state.wells);
   const setWellColor = useExperimentStore((state) => state.setWellColor);
@@ -72,6 +73,39 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     return () => clearInterval(interval);
   }, [isRunning, startTime]);
 
+  const pollExperimentStatus = useCallback(async () => {
+    if (!experimentId) return;
+    
+    try {
+      const response = await getExperimentStatus(experimentId);
+      const status = await response.json();
+      
+      // Always fetch the action log
+      const logEntries = await getExperimentActionLog(experimentId);
+      if (Array.isArray(logEntries)) {
+        const formattedLog: LogEntry[] = logEntries.map((entry) => ({
+          timestamp: new Date(entry.timestamp * 1000),
+          type: entry.type === "place" ? "place_droplets" : "get_color",
+          position: { x: entry.data.x, y: entry.data.y },
+          drops: entry.type === "place" ? entry.data.droplet_counts : undefined,
+          color: entry.type === "read" ? entry.data.color : undefined,
+        }));
+        setActionLog(formattedLog);
+      }
+
+      // If experiment is complete, clean up
+      if (status.status === 'completed') {
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+        setIsRunning(false);
+      }
+    } catch (error) {
+      console.error('Error polling experiment status:', error);
+    }
+  }, [experimentId, pollingInterval]);
+
   const handleCancelExperiment = async () => {
     console.log("Cancel button clicked");
     if (confirm("Are you sure you want to cancel the experiment?")) {
@@ -79,6 +113,13 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         console.log("Sending cancel request");
         await cancelExperiment();
         console.log("Cancel request successful");
+        
+        // Clear polling interval
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+        
         setIsRunning(false);
         setStartTime(null);
         setElapsedTime(0);
@@ -106,12 +147,25 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       await startExperiment(newExperimentId);
       setIsRunning(true);
       setStartTime(new Date());
-      setActionLog([]); // Start with empty log instead of mock data
+      setActionLog([]);
+
+      // Start polling
+      const interval = setInterval(pollExperimentStatus, 1000);
+      setPollingInterval(interval);
     } catch (error) {
       console.error("Failed to start experiment:", error);
       alert("Failed to start experiment. Please try again.");
     }
   };
+
+  // Cleanup effect for polling interval
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
 
   return (
     <div className="flex flex-col h-full gap-6">
