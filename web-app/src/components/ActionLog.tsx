@@ -97,6 +97,5 @@ export function ActionLog({
           </AnimatePresence>
         </div>
       </div>
-    </div>
   );
 }
