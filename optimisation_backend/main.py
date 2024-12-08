@@ -5,6 +5,7 @@ from typing import Union, Tuple, Optional, Dict, List, Any
 from dataclasses import dataclass
 from datetime import datetime
 import numpy as np
+from pydantic.type_adapter import P
 from skopt import Optimizer
 from skopt.space import Integer, Dimension
 import time
@@ -15,6 +16,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from well_analyzer import WellPlateAnalyzer
 from utils import rgb_to_hex
+import cv2
 
 load_dotenv()
 
@@ -25,9 +27,13 @@ from dotenv import load_dotenv
 
 
 # Constants
-VIRTUAL_LAB_BASE_URL = "http://127.0.0.1:5000"
+#
+#
+# TODO REPLACE WITH PI URL
+# VIRTUAL_LAB_BASE_URL = "http://127.0.0.1:5000"
+VIRTUAL_LAB_BASE_URL = "http://192.168.137.121:5000/"
 DEBUG_DELAY = 0.6
-OPENAI_API = os.getenv("VIRTUAL_LAB_BASE_URL")
+# OPENAI_API = os.getenv("VIRTUAL_LAB_BASE_URL")
 
 app = Flask(__name__)
 
@@ -58,17 +64,29 @@ class LabManager:
     def get_well_color(well_x: int, well_y: int) -> str:
         url = f"{VIRTUAL_LAB_BASE_URL}/image"
         response = requests.get(url)
+        print(response)
 
         if response.status_code == 200:
             print("Image received successfully.")
         else:
             print(f"Request failed with status code {response.status_code}")
 
+        print("HEADERS")
+        print(response.headers)
+            # shape = tuple(map(int, response.headers['X-Array-Shape'].split(',')))
+            # dtype = response.headers['X-Array-Dtype']
+
         image = np.asarray(bytearray(response.content), dtype="uint8")
+        cv_image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        print(f"IMAGE: image shape: {image.shape}")
+        # image = image.reshape((1920,1080,3))
+
+        cv2.imwrite('debug_image.jpeg', image)
 
         print("Analyzing image...")
         well_analyzer = WellPlateAnalyzer()
-        results, output_image = well_analyzer.analyze_plate(image)
+        results, output_image = well_analyzer.analyze_plate(np.asarray(cv_image))
+        print(results)
         print("Well colors analyzed.")
 
         return rgb_to_hex(*results[well_x, well_y])
@@ -552,6 +570,12 @@ def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
         return jsonify({"message": "Experiment cancelled successfully"}), 200
     else:
         return jsonify({"error": "No running experiment to cancel"}), 400
+
+
+@app.route("/debug", methods=["GET"])
+def debug_well_color():
+    color = LabManager.get_well_color(0, 0)
+    return jsonify({ "status": "it worked", "color": str(color) })
 
 
 if __name__ == "__main__":

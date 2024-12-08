@@ -8,7 +8,7 @@ class WellPlateAnalyzer:
     def __init__(
         self,
         image_path: Optional[str] = None,
-        save_debug: bool = False,
+        save_debug: bool = True,
     ):
         """Initializes the WellPlateAnalyzer.
 
