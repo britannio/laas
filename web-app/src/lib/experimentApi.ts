@@ -65,5 +65,8 @@ export async function getExperimentActionLog(experimentId: string): Promise<Acti
   }
 
   const data = await response.json();
-  return data.log;
+  console.log("API Response:", data); // Debug log
+
+  // Check if data.log exists, otherwise return empty array
+  return data.log || [];
 }

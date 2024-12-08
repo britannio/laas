@@ -140,17 +140,27 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
             onClick={async () => {
               try {
                 const logEntries = await getExperimentActionLog(experimentId);
-                // Convert the API response format to our internal format
+                console.log("Raw API response:", logEntries); // Debug log
+                
+                // Guard against undefined/null response
+                if (!Array.isArray(logEntries)) {
+                  console.error("Unexpected API response format:", logEntries);
+                  return;
+                }
+
                 const formattedLog: LogEntry[] = logEntries.map(entry => ({
-                  timestamp: new Date(entry.timestamp * 1000), // Convert Unix timestamp to Date
+                  timestamp: new Date(entry.timestamp * 1000),
                   type: entry.type === "place" ? "place_droplets" : "get_color",
                   position: { x: entry.data.x, y: entry.data.y },
                   drops: entry.type === "place" ? entry.data.droplet_counts : undefined,
                   color: entry.type === "read" ? entry.data.color : undefined,
                 }));
+                
+                console.log("Formatted log:", formattedLog); // Debug log
                 setActionLog(formattedLog);
               } catch (error) {
                 console.error("Failed to fetch action log:", error);
+                alert("Failed to fetch action log. Check console for details.");
               }
             }}
             className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
