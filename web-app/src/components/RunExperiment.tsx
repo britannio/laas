@@ -327,30 +327,34 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         {/* Right column - Status Cards and Action Log */}
         <div className="h-full overflow-hidden flex flex-col">
           <div className="grid grid-cols-2 gap-4 p-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="text-sm text-gray-500">Time Elapsed</div>
-              <div className="text-xl font-semibold">
+            {/* Time Elapsed Card */}
+            <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
+              <div className="text-sm font-medium text-blue-900 mb-1">Time Elapsed</div>
+              <div className="text-2xl font-semibold text-blue-700 font-mono">
                 {new Date(elapsedTime * 1000).toISOString().substr(11, 8)}
               </div>
             </div>
             
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="text-sm text-gray-500">Steps Completed</div>
-              <div className="text-xl font-semibold">
+            {/* Steps Completed Card */}
+            <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
+              <div className="text-sm font-medium text-blue-900 mb-1">Steps Completed</div>
+              <div className="text-2xl font-semibold text-blue-700 font-mono">
                 {actionLog.filter(entry => entry.type === "place_droplets").length}
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="text-sm text-gray-500">Optimal Combination</div>
-              <div className="text-xl font-semibold">
-                {optimalCombo ? `${optimalCombo.join(', ')}` : '-'}
+            {/* Optimal Combination Card */}
+            <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
+              <div className="text-sm font-medium text-blue-900 mb-1">Optimal Combination</div>
+              <div className="text-2xl font-semibold text-blue-700 font-mono">
+                {optimalCombo ? optimalCombo.join(', ') : '-'}
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="text-sm text-gray-500">Experiment Cost</div>
-              <div className="text-xl font-semibold">
+            {/* Experiment Cost Card */}
+            <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
+              <div className="text-sm font-medium text-blue-900 mb-1">Experiment Cost</div>
+              <div className="text-2xl font-semibold text-blue-700 font-mono">
                 £{calculateExperimentCost(elapsedTime, Object.keys(equipment))}
               </div>
             </div>
