@@ -125,7 +125,7 @@ class BackgroundTaskManager:
         }
 
 class BayesOpt:
-    def __init__(self, target: list[int], n_calls: int, experiment_id: str, 
+    def __init__(self, target: list[int], n_calls: int, experiment_id: str,
                  task_manager: BackgroundTaskManager, space: list[Dimension] | None = None):
         self.target = target
         self.current_well = 0
@@ -141,7 +141,7 @@ class BayesOpt:
 
     def objective_function(self, params: list[int]) -> float:
         x, y = well_num_to_x_y(self.current_well)
-        
+
         self.task_manager.add_action(
             self.experiment_id,
             "place",
@@ -301,10 +301,10 @@ if __name__ == "__main__":
     freeze_support()
 
     # Initialize the application
-    init_app()
+    # init_app()
 
     # Run the Flask app
     app.run(debug=True, port=5001)
-else:
+# else:
     # Initialize for when running from a WSGI server
-    init_app()
+    # init_app()

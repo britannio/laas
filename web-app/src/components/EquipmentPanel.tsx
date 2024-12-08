@@ -122,7 +122,6 @@ function EquipmentCard({
   description,
   isSelected,
   onToggle,
-  required,
 }: EquipmentCardProps) {
   const Icon = equipmentIcons[type];
 
