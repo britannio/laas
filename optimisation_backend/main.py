@@ -276,6 +276,8 @@ task_manager = BackgroundTaskManager()
 @app.route("/experiments/<experiment_id>/start_experiment", methods=["POST"])
 def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Starts a Bayesian Optimization experiment with default parameters."""
+    LabManager.clear_plate()  # clear the lab plate
+
     print(f"Starting new experiment with ID: {experiment_id}")
     experiment = Experiment(
         experiment_id=experiment_id, target=(90, 10, 130), n_calls=20
@@ -305,6 +307,8 @@ def start_experiment_with_params(
     experiment_id: str, r: int, g: int, b: int, n_calls: int
 ) -> Response:
     """Starts a Bayesian Optimization experiment with specified parameters."""
+    LabManager.clear_plate()  # clear the lab plate
+
     experiment = Experiment(
         experiment_id=experiment_id, target=(r, g, b), n_calls=n_calls
     )
