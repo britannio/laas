@@ -1,38 +1,85 @@
 import cv2
 import numpy as np
 import os
+from typing import List, Tuple, Optional, Dict
+
 
 class WellPlateAnalyzer:
-    def __init__(self, image_path):
+    def __init__(
+        self,
+        image_path: Optional[str] = None,
+        camera_index: int = 0,
+        save_debug: bool = False,
+    ):
+        """Initializes the WellPlateAnalyzer.
+
+        Args:
+            image_path (Optional[str]): Path to the image file.
+            camera_index (int): Index of the camera to use.
+            save_debug (bool): Whether to save debug images.
+        """
         self.image_path = image_path
+        self.camera_index = camera_index
         # Create debug directory if it doesn't exist
+        self.save_debug = save_debug
         self.debug_dir = "debug_images"
         if not os.path.exists(self.debug_dir):
             os.makedirs(self.debug_dir)
 
-    def save_debug_image(self, name, image):
-        """Save debug image to file"""
-        path = os.path.join(self.debug_dir, f"{name}.png")
-        cv2.imwrite(path, image)
-        print(f"Saved debug image: {path}")
+    def save_debug_image(self, name: str, image: np.ndarray) -> None:
+        """Save debug image to file.
 
-    def load_image(self):
-        """Load image from file"""
-        image = cv2.imread(self.image_path)
-        if image is None:
-            raise Exception(f"Failed to load image: {self.image_path}")
-        return image
+        Args:
+            name (str): Name of the debug image.
+            image (np.ndarray): Image to save.
+        """
+        if self.save_debug:
+            path = os.path.join(self.debug_dir, f"{name}.png")
+            cv2.imwrite(path, image)
+            print(f"Saved debug image: {path}")
 
-    def detect_plate(self, image):
-        """Detect the 96-well plate using the black sharpie outline"""
+    def capture_frame(self) -> np.ndarray:
+        """Capture a frame from the camera.
+
+        Returns:
+            np.ndarray: Captured frame.
+
+        Raises:
+            Exception: If the camera cannot be opened or frame cannot be captured.
+        """
+        cap = cv2.VideoCapture(self.camera_index)
+        if not cap.isOpened():
+            raise Exception(f"Failed to open camera: {self.camera_index}")
+
+        # Allow the camera to warm up
+        cv2.waitKey(1000)  # Wait for 1000ms (1 second)
+
+        ret, frame = cap.read()
+
+        cap.release()
+        if not ret:
+            raise Exception("Failed to capture frame from camera")
+        return frame
+
+    def detect_plate(self, image: np.ndarray) -> np.ndarray:
+        """Detect the 96-well plate using the black sharpie outline.
+
+        Args:
+            image (np.ndarray): Input image.
+
+        Returns:
+            np.ndarray: Contour of the detected plate.
+
+        Raises:
+            Exception: If no plate is detected.
+        """
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         self.save_debug_image("01_grayscale", gray)
 
         # Apply adaptive thresholding to handle varying lighting
         thresh = cv2.adaptiveThreshold(
-            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY_INV, 21, 10
+            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 21, 10
         )
         self.save_debug_image("02_threshold", thresh)
 
@@ -84,8 +131,18 @@ class WellPlateAnalyzer:
 
         return best_rect
 
-    def transform_perspective(self, image, points):
-        """Transform the perspective to get a top-down view"""
+    def transform_perspective(
+        self, image: np.ndarray, points: np.ndarray
+    ) -> np.ndarray:
+        """Transform the perspective to get a top-down view.
+
+        Args:
+            image (np.ndarray): Input image.
+            points (np.ndarray): Points for perspective transformation.
+
+        Returns:
+            np.ndarray: Warped image.
+        """
         # Order points in clockwise order starting from top-left
         rect = np.zeros((4, 2), dtype="float32")
 
@@ -99,16 +156,14 @@ class WellPlateAnalyzer:
         rect[3] = points[np.argmax(d)]  # Bottom-left
 
         # Get width and height
-        width = 800   # Fixed width for consistent results
-        height = int(width * (2/3))  # Maintain typical 96-well plate aspect ratio
+        width = 800  # Fixed width for consistent results
+        height = int(width * (2 / 3))  # Maintain typical 96-well plate aspect ratio
 
         # Create destination points
-        dst = np.array([
-            [0, 0],
-            [width - 1, 0],
-            [width - 1, height - 1],
-            [0, height - 1]
-        ], dtype="float32")
+        dst = np.array(
+            [[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]],
+            dtype="float32",
+        )
 
         # Calculate perspective transform matrix
         M = cv2.getPerspectiveTransform(rect, dst)
@@ -117,8 +172,15 @@ class WellPlateAnalyzer:
         self.save_debug_image("05_transformed", warped)
         return warped
 
-    def get_well_positions(self, plate_img):
-        """Calculate positions of all 96 wells"""
+    def get_well_positions(self, plate_img: np.ndarray) -> List[Tuple[int, int]]:
+        """Calculate positions of all 96 wells.
+
+        Args:
+            plate_img (np.ndarray): Image of the plate.
+
+        Returns:
+            List[Tuple[int, int]]: List of well positions.
+        """
         height, width = plate_img.shape[:2]
 
         # Standard 96-well plate is 8x12
@@ -143,15 +205,32 @@ class WellPlateAnalyzer:
                 # Draw well position on debug image
                 cv2.circle(debug_img, (x, y), 5, (0, 255, 0), -1)
                 # Add well ID
-                well_id = f'{chr(65 + row)}{col + 1}'
-                cv2.putText(debug_img, well_id, (x + 10, y),
-                          cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 255, 0), 1)
+                well_id = f"{chr(65 + row)}{col + 1}"
+                cv2.putText(
+                    debug_img,
+                    well_id,
+                    (x + 10, y),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.3,
+                    (0, 255, 0),
+                    1,
+                )
 
         self.save_debug_image("06_well_positions", debug_img)
         return well_positions
 
-    def analyze_wells(self, plate_img, well_positions):
-        """Get RGB values for each well"""
+    def analyze_wells(
+        self, plate_img: np.ndarray, well_positions: List[Tuple[int, int]]
+    ) -> Tuple[List[Dict[str, Tuple[int, int, int]]], np.ndarray]:
+        """Get RGB values for each well.
+
+        Args:
+            plate_img (np.ndarray): Image of the plate.
+            well_positions (List[Tuple[int, int]]): List of well positions.
+
+        Returns:
+            Tuple[List[Dict[str, Tuple[int, int, int]]], np.ndarray]: List of well RGB values and debug image.
+        """
         results = []
         well_radius = int(min(plate_img.shape[:2]) * 0.02)
         debug_img = plate_img.copy()
@@ -172,26 +251,34 @@ class WellPlateAnalyzer:
             if well_region.size > 0:
                 # Calculate average RGB values
                 b, g, r = cv2.mean(well_region)[:3]
-                well_id = f'{chr(65 + i//12)}{i%12 + 1}'
-                results.append({
-                    'well': well_id,
-                    'rgb': (int(r), int(g), int(b))
-                })
+                well_id = f"{chr(65 + i // 12)}{i % 12 + 1}"
+                results.append({"well": well_id, "rgb": (int(r), int(g), int(b))})
 
                 # Add RGB values to debug image
                 text = f"RGB:({int(r)},{int(g)},{int(b)})"
-                cv2.putText(debug_img, text, (x1, y1-5),
-                          cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 255, 0), 1)
+                cv2.putText(
+                    debug_img,
+                    text,
+                    (x1, y1 - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.3,
+                    (0, 255, 0),
+                    1,
+                )
 
         self.save_debug_image("07_analyzed_wells", debug_img)
-        return results
+        return results, debug_img
 
-    def analyze_plate(self):
-        """Main function to analyze the plate"""
+    def analyze_plate(self) -> Optional[np.ndarray]:
+        """Main function to analyze the plate.
+
+        Returns:
+            Optional[np.ndarray]: 2D NumPy array of RGB entries or None if an error occurs.
+        """
         try:
-            # Load image
-            print("Loading image...")
-            image = self.load_image()
+            # Capture frame from camera
+            print("Capturing frame from camera...")
+            image = self.capture_frame()
 
             # Detect plate
             print("Detecting plate...")
@@ -207,19 +294,36 @@ class WellPlateAnalyzer:
 
             # Analyze wells
             print("Analyzing wells...")
-            results = self.analyze_wells(plate_img, well_positions)
+            results, debug_image = self.analyze_wells(plate_img, well_positions)
 
-            return results
+            # Transform results into a NumPy array of RGB entries
+            rgb_array = np.empty((8, 12, 3), dtype=int)
+            for result in results:
+                well_id = result["well"]
+                row = (
+                    ord(well_id[0]) - 65
+                )  # Convert letter to row index (A=0, B=1, ...)
+                col = (
+                    int(well_id[1:]) - 1
+                )  # Convert number to column index (1=0, 2=1, ...)
+                rgb_array[row, col] = result["rgb"]
+
+            # Show well positions at the end
+            cv2.imshow("Well Positions", debug_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+            return rgb_array
 
         except Exception as e:
             print(f"Error analyzing plate: {str(e)}")
             return None
 
+
 # Example usage
 if __name__ == "__main__":
-    analyzer = WellPlateAnalyzer("demo.png")
+    analyzer = WellPlateAnalyzer(camera_index=0, save_debug=True)
     results = analyzer.analyze_plate()
-    if results:
-        print("\nResults:")
-        for well in results:
-            print(f"Well {well['well']}: RGB = {well['rgb']}")
+    if results is not None:
+        for result in results:
+            print(result)
