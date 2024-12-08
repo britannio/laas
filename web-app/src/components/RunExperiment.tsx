@@ -125,16 +125,19 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           setOptimalCombo(status.result.optimal_combo);
         }
         console.log("Experiment completed, stopping polling");
+        
+        // Stop polling - clear both the interval and the state
         if (pollingInterval) {
           clearInterval(pollingInterval);
-          setPollingInterval(null);
         }
+        setPollingInterval(null);
         setIsRunning(false);
         setExperimentId(null);
         experimentIdRef.current = null;
         
         // Optional: Show completion message
         alert("Experiment completed successfully!");
+        return; // Exit the polling function
       }
 
       console.log("=== Poll Complete ===");
@@ -158,7 +161,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         experimentIdRef.current = null;
       }
     }
-  }, [pollingInterval]); // Add pollingInterval to dependencies
+  }, [pollingInterval, setPollingInterval]); // Add setPollingInterval to dependencies
 
   const handleCancelExperiment = async () => {
     console.log("Cancel button clicked");
