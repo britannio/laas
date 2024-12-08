@@ -36,6 +36,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const wells = useExperimentStore((state) => state.wells);
   const setWellColor = useExperimentStore((state) => state.setWellColor);
   const clearWells = useExperimentStore((state) => state.clearWells);
+  const objective = useExperimentStore((state) => state.objective);
 
   const getWellColorsFromLog = useCallback((logEntries: LogEntry[]) => {
     const wellColors: Record<string, string> = {};
@@ -204,13 +205,21 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       console.log("=== Starting New Experiment ===");
       console.log("Generated ID:", newExperimentId);
 
+      // Get the target color from the objective
+      if (!objective?.color) {
+        throw new Error("No target color specified");
+      }
+
       // Set both state and ref
       setExperimentId(newExperimentId);
       experimentIdRef.current = newExperimentId;
 
-      // Start the experiment
+      // Start the experiment with the target color
       console.log("Calling startExperiment API...");
-      const response = await startExperiment(newExperimentId);
+      const response = await startExperiment(
+        newExperimentId,
+        objective.color  // Pass the target color
+      );
       console.log("Start experiment response:", response);
 
       // Update state
