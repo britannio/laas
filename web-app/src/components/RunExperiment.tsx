@@ -45,12 +45,12 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     const wellColors = getWellColorsFromLog(actionLog);
     
-    // Update the wells in the experiment store
+    // Update the wells in the experiment store using setWellColor
     Object.entries(wellColors).forEach(([key, color]) => {
       const [x, y] = key.split(',').map(Number);
-      setWellColor(x, y, color);
+      setWellColor(x, y, color); // Use store setter to update colors
     });
-  }, [actionLog, getWellColorsFromLog, setWellColor]);
+  }, [actionLog, getWellColorsFromLog, setWellColor]); // Include setWellColor in dependencies
   const objective = useExperimentStore((state) => state.objective);
   const optimizer = useExperimentStore((state) => state.optimizer);
   const equipment = useEquipmentStore((state) => state.equipment);
