@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENAI_API = os.getenv("openai_api")
+OPENAI_API = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=OPENAI_API)
 from dotenv import load_dotenv
@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 
 # Constants
 VIRTUAL_LAB_BASE_URL = "http://127.0.0.1:5000"
-DEBUG_DELAY = 0.3
+DEBUG_DELAY = 0.6
 OPENAI_API = os.getenv("VIRTUAL_LAB_BASE_URL")
 
 app = Flask(__name__)
@@ -312,16 +312,16 @@ class LLMOpt(Opt):
         prompt = f"""You are a color optimization expert. Given:
         - Current RGB color: {current_rgb}
         - Target RGB color: {self.target}
-        
+
         {self._format_history()}
-        
-        Based on this information and previous attempts, suggest the optimal number of drops (0-5) 
+
+        Based on this information and previous attempts, suggest the optimal number of drops (0-5)
         of Red, Green, and Blue dyes to achieve the target RGB color.
         Consider the following:
         - Each drop has a non-linear effect on the final color
         - Previous attempts show how different combinations affected the color
         - Aim to minimize the difference between target and result RGB values
-        
+
         Respond only with three numbers separated by commas representing Red,Green,Blue drops."""
 
         response = client.chat.completions.create(

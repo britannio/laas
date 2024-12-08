@@ -24,20 +24,25 @@ interface LogEntry {
 }
 
 export function RunExperiment({ onBack }: { onBack: () => void }) {
-  const calculateExperimentCost = useCallback((elapsedSeconds: number, selectedEquipment: string[]) => {
-    let totalCost = 0;
-    
-    // Add setup costs for each piece of equipment
-    selectedEquipment.forEach(equipmentType => {
-      if (equipmentCosts[equipmentType]) {
-        totalCost += equipmentCosts[equipmentType].setupCost;
-        // Add time-based costs (convert seconds to minutes)
-        totalCost += (equipmentCosts[equipmentType].perMinuteCost * (elapsedSeconds / 60));
-      }
-    });
+  const calculateExperimentCost = useCallback(
+    (elapsedSeconds: number, selectedEquipment: string[]) => {
+      let totalCost = 0;
 
-    return totalCost.toFixed(2);
-  }, []);
+      // Add setup costs for each piece of equipment
+      selectedEquipment.forEach((equipmentType) => {
+        if (equipmentCosts[equipmentType]) {
+          totalCost += equipmentCosts[equipmentType].setupCost;
+          // Add time-based costs (convert seconds to minutes)
+          totalCost +=
+            equipmentCosts[equipmentType].perMinuteCost * (elapsedSeconds / 60);
+        }
+      });
+
+      return totalCost.toFixed(2);
+    },
+    [],
+  );
+  const [useLLM, setUseLLM] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -140,7 +145,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           setOptimalCombo(status.result.optimal_combo);
         }
         console.log("Experiment completed, stopping polling");
-        
+
         // Stop polling - clear both the interval and the state
         if (pollingInterval) {
           clearInterval(pollingInterval);
@@ -149,7 +154,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         setIsRunning(false);
         setExperimentId(null);
         experimentIdRef.current = null;
-        
+
         // Optional: Show completion message
         alert("Experiment completed successfully!");
         return; // Exit the polling function
@@ -216,7 +221,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     try {
       // Clear the well plate state
       clearWells();
-      
+
       const newExperimentId = uuidv4();
       console.log("=== Starting New Experiment ===");
       console.log("Generated ID:", newExperimentId);
@@ -239,7 +244,8 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       const response = await startExperiment(
         newExperimentId,
         objective.color,
-        maxSteps  // Pass the configured step count
+        maxSteps,
+        useLLM,
       );
       console.log("Start experiment response:", response);
 
@@ -291,23 +297,36 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           Back
         </button>
 
-        <button
-          onClick={() => {
-            if (isRunning) {
-              handleCancelExperiment();
-            } else {
-              handleStartExperiment();
-            }
-          }}
-          className={cn(
-            "px-4 py-2 rounded-lg font-medium",
-            isRunning
-              ? "bg-red-100 text-red-600 hover:bg-red-200"
-              : "bg-blue-600 text-white hover:bg-blue-700",
-          )}
-        >
-          {isRunning ? "Cancel Experiment" : "Start Experiment"}
-        </button>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Use LLM Optimization</span>
+            <input
+              type="checkbox"
+              checked={useLLM}
+              onChange={(e) => setUseLLM(e.target.checked)}
+              disabled={isRunning}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+            />
+          </label>
+
+          <button
+            onClick={() => {
+              if (isRunning) {
+                handleCancelExperiment();
+              } else {
+                handleStartExperiment();
+              }
+            }}
+            className={cn(
+              "px-4 py-2 rounded-lg font-medium",
+              isRunning
+                ? "bg-red-100 text-red-600 hover:bg-red-200"
+                : "bg-blue-600 text-white hover:bg-blue-700",
+            )}
+          >
+            {isRunning ? "Cancel Experiment" : "Start Experiment"}
+          </button>
+        </div>
       </div>
 
       {/* Main content area */}
@@ -329,31 +348,42 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           <div className="grid grid-cols-2 gap-4 p-4">
             {/* Time Elapsed Card */}
             <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
-              <div className="text-sm font-medium text-blue-900 mb-1">Time Elapsed</div>
+              <div className="text-sm font-medium text-blue-900 mb-1">
+                Time Elapsed
+              </div>
               <div className="text-2xl font-semibold text-blue-700 font-mono">
                 {new Date(elapsedTime * 1000).toISOString().substr(11, 8)}
               </div>
             </div>
-            
+
             {/* Steps Completed Card */}
             <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
-              <div className="text-sm font-medium text-blue-900 mb-1">Steps Completed</div>
+              <div className="text-sm font-medium text-blue-900 mb-1">
+                Steps Completed
+              </div>
               <div className="text-2xl font-semibold text-blue-700 font-mono">
-                {actionLog.filter(entry => entry.type === "place_droplets").length}
+                {
+                  actionLog.filter((entry) => entry.type === "place_droplets")
+                    .length
+                }
               </div>
             </div>
 
             {/* Optimal Combination Card */}
             <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
-              <div className="text-sm font-medium text-blue-900 mb-1">Optimal Combination</div>
+              <div className="text-sm font-medium text-blue-900 mb-1">
+                Optimal Combination
+              </div>
               <div className="text-2xl font-semibold text-blue-700 font-mono">
-                {optimalCombo ? optimalCombo.join(', ') : '-'}
+                {optimalCombo ? optimalCombo.join(", ") : "-"}
               </div>
             </div>
 
             {/* Experiment Cost Card */}
             <div className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-100">
-              <div className="text-sm font-medium text-blue-900 mb-1">Experiment Cost</div>
+              <div className="text-sm font-medium text-blue-900 mb-1">
+                Experiment Cost
+              </div>
               <div className="text-2xl font-semibold text-blue-700 font-mono">
                 £{calculateExperimentCost(elapsedTime, Object.keys(equipment))}
               </div>
@@ -361,8 +391,8 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            <ActionLog 
-              entries={actionLog} 
+            <ActionLog
+              entries={actionLog}
               elapsedTime={elapsedTime}
               optimalCombo={optimalCombo}
             />

@@ -1,7 +1,7 @@
 const API_BASE_URL = "http://127.0.0.1:5001";
 // const API_BASE_URL = "https://8dad-82-163-218-33.ngrok-free.app";
 
-export const DEFAULT_MAX_STEPS = 20;
+export const DEFAULT_MAX_STEPS = 10;
 
 export async function cancelExperiment(): Promise<Response> {
   const response = await fetch(`${API_BASE_URL}/cancel_experiment`, {
@@ -21,16 +21,23 @@ export async function cancelExperiment(): Promise<Response> {
 export async function startExperiment(
   experimentId: string,
   targetColor: string,
-  maxSteps: number = DEFAULT_MAX_STEPS
+  maxSteps: number = DEFAULT_MAX_STEPS,
+  useLLM: boolean = false,
 ): Promise<Response> {
   // Convert hex color to RGB
-  const hex = targetColor.replace('#', '');
+  const hex = targetColor.replace("#", "");
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
 
+  let url = `${API_BASE_URL}/experiments/${experimentId}/optimize/${r}/${g}/${b}/${maxSteps}`;
+  if (useLLM) {
+    url = `${API_BASE_URL}/experiments/${experimentId}/optimize_llm/${r}/${g}/${b}/${maxSteps}`;
+  }
+
   const response = await fetch(
-    `${API_BASE_URL}/experiments/${experimentId}/optimize/${r}/${g}/${b}/${maxSteps}`,
+    url,
+    // `${API_BASE_URL}/experiments/${experimentId}/optimize/${r}/${g}/${b}/${maxSteps}`,
     {
       method: "POST",
       headers: {
@@ -74,14 +81,44 @@ export async function getExperimentStatus(experimentId: string): Promise<{
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch experiment status: ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch experiment status: ${response.statusText}`,
+    );
   }
 
-  return response.json();  // Return the parsed JSON directly
+  return response.json(); // Return the parsed JSON directly
+}
+
+export async function startExperimentLLM(
+  experimentId: string,
+  targetColor: string,
+  maxSteps: number = DEFAULT_MAX_STEPS,
+): Promise<Response> {
+  // Convert hex color to RGB
+  const hex = targetColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  const response = await fetch(
+    `${API_BASE_URL}/experiments/${experimentId}/optimize_llm/${r}/${g}/${b}/${maxSteps}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to start experiment: ${response.statusText}`);
+  }
+
+  return response.json();
 }
 
 export async function getExperimentActionLog(
