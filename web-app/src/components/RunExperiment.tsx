@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { WellPlate } from "./WellPlate";
 import { ActionLog } from "./ActionLog";
 // import { ExperimentControls } from "./ExperimentControls";
@@ -73,24 +73,31 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     return () => clearInterval(interval);
   }, [isRunning, startTime]);
 
+  const experimentIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    experimentIdRef.current = experimentId;
+  }, [experimentId]);
+
   const pollExperimentStatus = useCallback(async () => {
-    if (!experimentId) {
+    const currentExperimentId = experimentIdRef.current;
+    if (!currentExperimentId) {
       console.log('No experimentId available, skipping poll');
       return;
     }
     
     console.log('=== Starting Poll ===');
-    console.log('Polling for experiment:', experimentId);
+    console.log('Polling for experiment:', currentExperimentId);
     
     try {
       // First try to get status
       console.log('Fetching status...');
-      const status = await getExperimentStatus(experimentId);
+      const status = await getExperimentStatus(currentExperimentId);
       console.log('Status response:', status);
       
       // Then try to get log entries
       console.log('Fetching action log...');
-      const logEntries = await getExperimentActionLog(experimentId);
+      const logEntries = await getExperimentActionLog(currentExperimentId);
       console.log('Log entries response:', logEntries);
       
       if (!Array.isArray(logEntries)) {
@@ -140,7 +147,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         }
       }
     }
-  }, [experimentId, pollingInterval]);
+  }, []);
 
   const handleCancelExperiment = async () => {
     console.log("Cancel button clicked");
@@ -182,8 +189,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       console.log('=== Starting New Experiment ===');
       console.log('Generated ID:', newExperimentId);
       
-      // Set ID first
+      // Set both state and ref
       setExperimentId(newExperimentId);
+      experimentIdRef.current = newExperimentId;
       
       // Start the experiment
       console.log('Calling startExperiment API...');
