@@ -1,3 +1,4 @@
+import { BeakerIcon, FlaskConicalIcon } from 'lucide-react';
 import { equipmentIcons } from "../lib/icons";
 import { useEquipmentStore } from "../stores/equipmentStore";
 import { cn } from "../lib/utils";
@@ -128,14 +129,24 @@ export function EquipmentPanel({
       </div>
 
       {/* Cost Estimation Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Cost Estimation</h3>
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Cost Estimation</h3>
+          <div className="text-sm text-gray-500">
+            All prices in GBP (£)
+          </div>
+        </div>
         
         {/* Duration Slider */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Estimated Duration: {duration} minutes
-          </label>
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-sm font-medium text-gray-700">
+              Experiment Duration
+            </label>
+            <span className="text-sm font-medium text-blue-600">
+              {duration} minutes
+            </span>
+          </div>
           <input
             type="range"
             min="5"
@@ -143,41 +154,67 @@ export function EquipmentPanel({
             step="5"
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
-            className="w-full"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>5 min</span>
+            <span>120 min</span>
+          </div>
         </div>
 
         {/* Cost Comparison */}
         <div className="grid grid-cols-2 gap-6">
           {/* Platform Cost */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Platform Cost</h4>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span>Setup Cost:</span>
-                <span className="font-medium">£{costs.setupCost.toFixed(2)}</span>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 rounded-xl border border-blue-200">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <BeakerIcon className="h-5 w-5 text-blue-600" />
               </div>
-              <div className="flex justify-between">
-                <span>Running Cost:</span>
-                <span className="font-medium">£{costs.runningCost.toFixed(2)}</span>
+              <h4 className="font-semibold text-blue-900">Platform Cost</h4>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Setup Cost</span>
+                <span className="font-medium text-blue-900">£{costs.setupCost.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-blue-700 font-medium pt-2 border-t">
-                <span>Total Cost:</span>
-                <span>£{costs.totalCost.toFixed(2)}</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Running Cost</span>
+                <span className="font-medium text-blue-900">£{costs.runningCost.toFixed(2)}</span>
+              </div>
+              <div className="pt-3 border-t border-blue-200">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-blue-900">Total Cost</span>
+                  <span className="text-lg font-semibold text-blue-900">£{costs.totalCost.toFixed(2)}</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Traditional Lab Cost */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Traditional Lab Cost</h4>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between text-gray-700 font-medium pt-2">
-                <span>Total Cost:</span>
-                <span>£{costs.traditionalCost.toFixed(2)}</span>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 p-6 rounded-xl border border-gray-200">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <FlaskConicalIcon className="h-5 w-5 text-gray-600" />
               </div>
-              <div className="text-green-600 text-xs mt-2">
-                Save £{(costs.traditionalCost - costs.totalCost).toFixed(2)} with our platform
+              <h4 className="font-semibold text-gray-900">Traditional Lab Cost</h4>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Equivalent Cost</span>
+                <span className="font-medium text-gray-900">£{costs.traditionalCost.toFixed(2)}</span>
+              </div>
+              <div className="pt-3 border-t border-gray-200">
+                <div className="bg-green-50 rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium text-green-800">Total Savings</span>
+                    <span className="text-lg font-semibold text-green-700">
+                      £{(costs.traditionalCost - costs.totalCost).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-green-600">
+                    {((costs.traditionalCost - costs.totalCost) / costs.traditionalCost * 100).toFixed(0)}% cheaper than traditional methods
+                  </div>
+                </div>
               </div>
             </div>
           </div>
