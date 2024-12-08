@@ -2,7 +2,7 @@ from flask import Flask, jsonify, Response
 from flask_cors import CORS
 from typing import Union, Tuple
 from bayes_opt import BayesOpt
-from model import VirtualLab
+# from model import VirtualLab
 from background_tasks import BackgroundTaskManager, Experiment
 
 app = Flask(__name__)
@@ -16,12 +16,12 @@ CORS(app, resources={
 })
 
 # Create these as global variables but initialize them later
-model = None
+virtualLab = None
 task_manager = None
 
 def init_app():
-    global model, task_manager
-    model = VirtualLab()
+    global virtualLab, task_manager
+    # virtualLab = VirtualLab()
     task_manager = BackgroundTaskManager()
 
 
@@ -39,7 +39,7 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
 
     # Create optimizer with reference to task manager
     bo = BayesOpt(
-        model,
+        virtualLab,
         target=[90, 10, 130],
         n_calls=20,
         experiment_id=experiment_id,
@@ -59,7 +59,7 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
 @app.route("/experiments/<experiment_id>/optimize/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["POST"])
 def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_calls: int) -> Response:
     """Starts a Bayesian Optimization experiment with specified parameters."""
-    bo = BayesOpt(model, target=(r, g, b), n_calls=n_calls, experiment_id=experiment_id, space=None)
+    bo = BayesOpt(virtualLab, target=(r, g, b), n_calls=n_calls, experiment_id=experiment_id, space=None)
     experiment = Experiment(experiment_id=experiment_id, target=(r, g, b), n_calls=n_calls)
 
     task_manager.start_experiment(experiment, bo)
@@ -92,7 +92,7 @@ def get_well_color(x: int, y: int) -> Union[Response, Tuple[Response, int]]:
     Returns:
         Response: A JSON response containing the color of the well or an error message.
     """
-    color = model.get_well_color(x, y)
+    color = virtualLab.get_well_color(x, y)
     if color is None:
         return jsonify({"error": "Invalid well coordinates"}), 400
     return jsonify({"color": color})
@@ -127,7 +127,7 @@ def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
 if __name__ == "__main__":
     # Initialize the application
     init_app()
-    
+
     # Run the Flask app
     app.run(debug=True, port=5001)
 else:
