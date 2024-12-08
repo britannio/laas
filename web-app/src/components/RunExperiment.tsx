@@ -34,6 +34,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
   const wells = useExperimentStore((state) => state.wells);
   const setWellColor = useExperimentStore((state) => state.setWellColor);
+  const clearWells = useExperimentStore((state) => state.clearWells);
 
   const getWellColorsFromLog = useCallback((logEntries: LogEntry[]) => {
     const wellColors: Record<string, string> = {};
@@ -192,6 +193,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
   const handleStartExperiment = async () => {
     try {
+      // Clear the well plate state
+      clearWells();
+      
       const newExperimentId = uuidv4();
       console.log("=== Starting New Experiment ===");
       console.log("Generated ID:", newExperimentId);

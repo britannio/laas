@@ -9,24 +9,11 @@ interface ExperimentState {
   setObjective: (objective: Objective) => void;
   setOptimizer: (optimizer: Optimizer) => void;
   setWellColor: (x: number, y: number, color: string) => void;
+  clearWells: () => void;
 }
 
 export const useExperimentStore = create<ExperimentState>((set) => ({
-  wells: {
-    // Test data for first few wells
-    // "0,0": {
-    //   color: "#FF8844",
-    //   drops: [2, 1, 1]
-    // },
-    // "1,0": {
-    //   color: "#7733FF",
-    //   drops: [1, 3, 2]
-    // },
-    // "0,1": {
-    //   color: "#44FF88",
-    //   drops: [1, 2, 1]
-    // }
-  },
+  wells: {},
   objective: null,
   optimizer: null,
   updateWell: (x: number, y: number, data: WellData) =>
@@ -48,4 +35,5 @@ export const useExperimentStore = create<ExperimentState>((set) => ({
         },
       },
     })),
+  clearWells: () => set({ wells: {} }),
 }));
