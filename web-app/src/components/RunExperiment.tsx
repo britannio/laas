@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { WellPlate } from "./WellPlate";
+import { ActionLog } from "./ActionLog";
 import { ExperimentControls } from "./ExperimentControls";
 import { useExperimentStore } from "../stores/experimentStore";
 import { useEquipmentStore } from "../stores/equipmentStore";
@@ -40,12 +41,6 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
     return () => clearInterval(interval);
   }, [isRunning, startTime]);
 
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
 
   const handleCancelExperiment = async () => {
     console.log("Cancel button clicked");
@@ -171,8 +166,8 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Main content area */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0">
-        {/* Left column - Responsive well plate */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-12rem)]">
+        {/* Left column - Well plate */}
         <div className="flex items-center justify-center p-8 bg-gray-50 rounded-lg">
           <div className="w-full max-w-3xl aspect-[1.5/1]">
             <div className="transform rotate-90 lg:rotate-0 w-full h-full">
@@ -184,91 +179,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        {/* Right column - Scrollable content */}
-        <div className="flex flex-col gap-4 min-h-0">
-          {/* Timer and Step Count */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-700">Time Elapsed</h4>
-              <p className="text-2xl font-mono text-blue-600">
-                {formatTime(elapsedTime)}
-              </p>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-700">Steps Completed</h4>
-              <p className="text-2xl font-mono text-blue-600">
-                {actionLog.length}
-              </p>
-            </div>
-          </div>
-
-          {/* Action Log */}
-          <div className="bg-white rounded-lg shadow-sm p-4 flex-grow min-h-0">
-            <h4 className="font-medium text-gray-700 mb-4">Action Log</h4>
-            <div className="space-y-3 overflow-y-auto h-[calc(100%-2rem)]">
-              {actionLog.map((entry, index) => (
-                <div
-                  key={index}
-                  className="border-l-4 border-blue-500 pl-4 py-2"
-                >
-                  <div className="text-sm text-gray-500">
-                    {entry.timestamp.toLocaleTimeString()}
-                  </div>
-                  {entry.type === "place_droplets" ? (
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="font-medium">Place Droplets</span>
-                        <span className="text-gray-600">
-                          {` at Well (${entry.position.x}, ${entry.position.y})`}
-                        </span>
-                      </div>
-                      <div className="bg-blue-50 rounded-lg p-2 ml-4">
-                        <div className="text-sm font-medium text-blue-800 mb-1">
-                          Drop Counts:
-                        </div>
-                        <div className="grid grid-cols-3 gap-3 text-sm">
-                          <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 rounded-full bg-red-500 mb-1" />
-                            <span className="font-mono">
-                              {entry.drops?.[0]}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 rounded-full bg-green-500 mb-1" />
-                            <span className="font-mono">
-                              {entry.drops?.[1]}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 rounded-full bg-blue-500 mb-1" />
-                            <span className="font-mono">
-                              {entry.drops?.[2]}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="font-medium">Read Color</span>
-                        <span className="text-gray-600">
-                          {` at Well (${entry.position.x}, ${entry.position.y})`}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-3 bg-gray-50 rounded-lg p-2 ml-4">
-                        <div
-                          className="w-6 h-6 rounded-lg shadow-inner"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="font-mono text-sm">{entry.color}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Right column - Action Log */}
+        <div className="h-full overflow-hidden">
+          <ActionLog entries={actionLog} elapsedTime={elapsedTime} />
         </div>
       </div>
     </div>
