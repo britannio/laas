@@ -139,8 +139,16 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           <button
             onClick={async () => {
               try {
-                const response = await getExperimentActionLog(experimentId);
-                console.log("Current Action Log:", response);
+                const logEntries = await getExperimentActionLog(experimentId);
+                // Convert the API response format to our internal format
+                const formattedLog: LogEntry[] = logEntries.map(entry => ({
+                  timestamp: new Date(entry.timestamp * 1000), // Convert Unix timestamp to Date
+                  type: entry.type === "place" ? "place_droplets" : "get_color",
+                  position: { x: entry.data.x, y: entry.data.y },
+                  drops: entry.type === "place" ? entry.data.droplet_counts : undefined,
+                  color: entry.type === "read" ? entry.data.color : undefined,
+                }));
+                setActionLog(formattedLog);
               } catch (error) {
                 console.error("Failed to fetch action log:", error);
               }
