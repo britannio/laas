@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
 from typing import Union, Tuple
+from multiprocessing import freeze_support
 from bayes_opt import BayesOpt
 # from model import VirtualLab
 from background_tasks import BackgroundTaskManager, Experiment
@@ -125,6 +126,9 @@ def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
         # return jsonify({"error": "No running experiment to cancel"}), 400
 
 if __name__ == "__main__":
+    # Initialize multiprocessing support
+    freeze_support()
+    
     # Initialize the application
     init_app()
 
