@@ -13,6 +13,8 @@ from threading import Thread
 import traceback
 from openai import OpenAI
 from dotenv import load_dotenv
+from well_analyzer import WellPlateAnalyzer
+from utils import rgb_to_hex
 
 load_dotenv()
 
@@ -54,13 +56,22 @@ class LabManager:
 
     @staticmethod
     def get_well_color(well_x: int, well_y: int) -> str:
-        url = f"{VIRTUAL_LAB_BASE_URL}/well/{well_x}/{well_y}/color"
+        url = f"{VIRTUAL_LAB_BASE_URL}/image"
         response = requests.get(url)
+
         if response.status_code == 200:
-            return response.json()["color"]
+            print("Image received successfully.")
         else:
             print(f"Request failed with status code {response.status_code}")
-            return "#000000"
+
+        image = np.asarray(bytearray(response.content), dtype="uint8")
+
+        print("Analyzing image...")
+        well_analyzer = WellPlateAnalyzer()
+        results, output_image = well_analyzer.analyze_plate(image)
+        print("Well colors analyzed.")
+
+        return rgb_to_hex(*results[well_x, well_y])
 
     @staticmethod
     def clear_plate() -> None:
