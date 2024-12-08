@@ -37,6 +37,8 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const setWellColor = useExperimentStore((state) => state.setWellColor);
   const clearWells = useExperimentStore((state) => state.clearWells);
   const objective = useExperimentStore((state) => state.objective);
+  const optimizer = useExperimentStore((state) => state.optimizer);
+  const equipment = useEquipmentStore((state) => state.equipment);
 
   const getWellColorsFromLog = useCallback((logEntries: LogEntry[]) => {
     const wellColors: Record<string, string> = {};
@@ -62,10 +64,6 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
       setWellColor(x, y, color); // Use store setter to update colors
     });
   }, [actionLog, getWellColorsFromLog, setWellColor]); // Include setWellColor in dependencies
-  const objective = useExperimentStore((state) => state.objective);
-  const optimizer = useExperimentStore((state) => state.optimizer);
-  const equipment = useEquipmentStore((state) => state.equipment);
-
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRunning && startTime) {
