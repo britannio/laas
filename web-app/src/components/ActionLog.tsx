@@ -3,6 +3,7 @@ import { LogEntry } from "./RunExperiment"; // You might want to move this inter
 interface ActionLogProps {
   entries: LogEntry[];
   elapsedTime: number;
+  optimalCombo?: [number, number, number];
 }
 
 export function ActionLog({ entries, elapsedTime }: ActionLogProps) {
@@ -16,7 +17,7 @@ export function ActionLog({ entries, elapsedTime }: ActionLogProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Timer and Step Count */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="font-medium text-blue-700">Time Elapsed</h4>
           <p className="text-2xl font-mono text-blue-600">
@@ -26,6 +27,27 @@ export function ActionLog({ entries, elapsedTime }: ActionLogProps) {
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="font-medium text-blue-700">Steps Completed</h4>
           <p className="text-2xl font-mono text-blue-600">{entries.length}</p>
+        </div>
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h4 className="font-medium text-blue-700">Optimal Combination</h4>
+          {optimalCombo ? (
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <div className="flex flex-col items-center">
+                <div className="w-3 h-3 rounded-full bg-red-500 mb-1" />
+                <span className="font-mono text-blue-600">{optimalCombo[0]}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-3 h-3 rounded-full bg-green-500 mb-1" />
+                <span className="font-mono text-blue-600">{optimalCombo[1]}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-3 h-3 rounded-full bg-blue-500 mb-1" />
+                <span className="font-mono text-blue-600">{optimalCombo[2]}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-blue-600 mt-2">Pending completion...</p>
+          )}
         </div>
       </div>
 

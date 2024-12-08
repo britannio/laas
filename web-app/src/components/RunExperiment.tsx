@@ -31,6 +31,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
     null,
   );
+  const [optimalCombo, setOptimalCombo] = useState<[number, number, number]>();
 
   const wells = useExperimentStore((state) => state.wells);
   const setWellColor = useExperimentStore((state) => state.setWellColor);
@@ -121,6 +122,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
       // Check if experiment is complete
       if (status.status === "completed") {
+        if (status.result?.optimal_combo) {
+          setOptimalCombo(status.result.optimal_combo);
+        }
         console.log("Experiment completed, stopping polling");
         if (pollingInterval) {
           clearInterval(pollingInterval);
@@ -351,7 +355,11 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
         {/* Right column - Action Log */}
         <div className="h-full overflow-hidden">
-          <ActionLog entries={actionLog} elapsedTime={elapsedTime} />
+          <ActionLog 
+            entries={actionLog} 
+            elapsedTime={elapsedTime}
+            optimalCombo={optimalCombo}
+          />
         </div>
       </div>
     </div>

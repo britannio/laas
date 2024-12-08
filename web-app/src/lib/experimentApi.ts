@@ -49,7 +49,12 @@ interface ActionLogEntry {
   type: "place" | "read";
 }
 
-export async function getExperimentStatus(experimentId: string): Promise<{status: string}> {
+export async function getExperimentStatus(experimentId: string): Promise<{
+  status: string;
+  result?: {
+    optimal_combo: [number, number, number];
+  };
+}> {
   const response = await fetch(
     `${API_BASE_URL}/experiments/${experimentId}/status`,
     {
