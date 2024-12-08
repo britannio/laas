@@ -4,14 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface ActionLogProps {
   entries: LogEntry[];
-  elapsedTime: number;
-  optimalCombo?: [number, number, number];
 }
 
 export function ActionLog({
   entries,
-  elapsedTime,
-  optimalCombo,
 }: ActionLogProps) {
   // Add a ref for the scrollable container
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -22,60 +18,9 @@ export function ActionLog({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [entries]);
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Timer and Step Count */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="font-medium text-blue-700">Time Elapsed</h4>
-          <p className="text-2xl font-mono text-blue-600">
-            {formatTime(elapsedTime)}
-          </p>
-        </div>
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="font-medium text-blue-700">Steps Completed</h4>
-          <p className="text-2xl font-mono text-blue-600">
-            {Math.ceil(entries.length / 2)}
-          </p>
-        </div>
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="font-medium text-blue-700">Optimal Combination</h4>
-          {optimalCombo ? (
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              <div className="flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full bg-red-500 mb-1" />
-                <span className="font-mono text-blue-600">
-                  {optimalCombo[0]}
-                </span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full bg-green-500 mb-1" />
-                <span className="font-mono text-blue-600">
-                  {optimalCombo[1]}
-                </span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full bg-blue-500 mb-1" />
-                <span className="font-mono text-blue-600">
-                  {optimalCombo[2]}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-blue-600 mt-2">Pending completion...</p>
-          )}
-        </div>
-      </div>
-
-      {/* Action Log */}
-      <div className="bg-white rounded-lg shadow-sm p-4 flex-grow overflow-hidden">
+    <div className="bg-white rounded-lg shadow-sm p-4 h-full overflow-hidden">
         <h4 className="font-medium text-gray-700 mb-4">Action Log</h4>
         <div
           ref={scrollRef}
@@ -152,6 +97,5 @@ export function ActionLog({
           </AnimatePresence>
         </div>
       </div>
-    </div>
   );
 }
