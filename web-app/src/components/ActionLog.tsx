@@ -6,7 +6,7 @@ interface ActionLogProps {
   optimalCombo?: [number, number, number];
 }
 
-export function ActionLog({ entries, elapsedTime }: ActionLogProps) {
+export function ActionLog({ entries, elapsedTime, optimalCombo }: ActionLogProps) {
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
