@@ -8,6 +8,7 @@ interface ExperimentState {
   updateWell: (x: number, y: number, data: WellData) => void;
   setObjective: (objective: Objective) => void;
   setOptimizer: (optimizer: Optimizer) => void;
+  setWellColor: (x: number, y: number, color: string) => void;
 }
 
 export const useExperimentStore = create<ExperimentState>((set) => ({
@@ -37,4 +38,14 @@ export const useExperimentStore = create<ExperimentState>((set) => ({
     })),
   setObjective: (objective) => set({ objective }),
   setOptimizer: (optimizer) => set({ optimizer }),
+  setWellColor: (x: number, y: number, color: string) =>
+    set((state) => ({
+      wells: {
+        ...state.wells,
+        [`${x},${y}`]: {
+          ...state.wells[`${x},${y}`] || {},
+          color
+        }
+      }
+    }))
 }));
