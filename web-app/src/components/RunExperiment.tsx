@@ -324,7 +324,7 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        {/* Right column - Action Log */}
+        {/* Right column - Status Cards and Action Log */}
         <div className="h-full overflow-hidden flex flex-col">
           <div className="grid grid-cols-2 gap-4 p-4">
             <div className="bg-white p-4 rounded-lg shadow-sm">
