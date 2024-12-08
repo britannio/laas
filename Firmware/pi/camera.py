@@ -13,7 +13,7 @@ def capture_image():
     # Initialize the camera
     with picamera.PiCamera() as camera:
         # Optional: configure camera settings
-        camera.resolution = (640, 480)
+        camera.resolution = (1920, 1080)
         camera.brightness = 50
         
         # Capture the image to the stream
