@@ -113,23 +113,30 @@ export function EquipmentPanel({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {allEquipment.map((item) => (
-          <EquipmentCard
-            key={item.type}
-            type={item.type}
-            title={item.title}
-            description={item.description}
-            isSelected={equipment[item.type]?.status === "idle"}
-            onToggle={() => toggleEquipment(item.type)}
-            required={item.required}
-            costs={equipmentCosts[item.type]}
-          />
-        ))}
-      </div>
+      {/* Main content area - Equipment and Cost side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left side - Equipment Selection */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Equipment Selection</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {allEquipment.map((item) => (
+              <EquipmentCard
+                key={item.type}
+                type={item.type}
+                title={item.title}
+                description={item.description}
+                isSelected={equipment[item.type]?.status === "idle"}
+                onToggle={() => toggleEquipment(item.type)}
+                required={item.required}
+                costs={equipmentCosts[item.type]}
+              />
+            ))}
+          </div>
+        </div>
 
-      {/* Cost Estimation Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        {/* Right side - Cost Estimation */}
+        <div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 sticky top-4">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Cost Estimation</h3>
           <div className="text-sm text-gray-500">
@@ -217,6 +224,8 @@ export function EquipmentPanel({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>
