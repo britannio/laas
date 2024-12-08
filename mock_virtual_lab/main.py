@@ -1,6 +1,5 @@
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request, render_template
 import numpy as np
-from typing import List, Tuple
 
 app = Flask(__name__)
 
@@ -21,7 +20,7 @@ class VirtualLab:
     def validate_position(self, x: int, y: int) -> bool:
         return 0 <= x < 8 and 0 <= y < 12
 
-    def add_dyes(self, x: int, y: int, drops: List[int]) -> bool:
+    def add_dyes(self, x: int, y: int, drops: list[int]) -> bool:
         if not self.validate_position(x, y):
             return False
 
@@ -37,7 +36,7 @@ class VirtualLab:
         self.plate[x, y] = np.clip(self.plate[x, y], 0, 1)
         return True
 
-    def get_well_color(self, x: int, y: int) -> str:
+    def get_well_color(self, x: int, y: int) -> str | None:
         if not self.validate_position(x, y):
             return None
 
@@ -46,6 +45,9 @@ class VirtualLab:
         # Convert to hex color string
         hex_color = "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
         return hex_color
+
+    def clear_plate(self):
+        self.plate = np.zeros((8, 12, 3), dtype=np.float32)
 
 
 # Create virtual lab instance
@@ -83,6 +85,17 @@ def get_well_color(x: int, y: int):
 
     print(f"Color at ({x}, {y}): {color}")
     return jsonify({"color": color})  # Returns hex color string like "#ff0000"
+
+
+@app.route("/clear_plate", methods=["POST"])
+def clear_plate() -> Response:
+    lab.clear_plate()
+    return jsonify({"status": "plate cleared"})
+
+
+@app.route("/")
+def index() -> str:
+    return render_template("index.html")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Lab</title>
+    <style>
+      .well {
+        width: 50px;
+        height: 50px;
+        display: inline-block;
+        margin: 2px;
+        border: 1px solid #000;
+      }
+      .row {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Virtual Lab Plate</h1>
+    <div id="plate"></div>
+    <button onclick="clearPlate()">Clear Plate</button>
+    <script>
+      const plateElement = document.getElementById("plate");
+
+      function createPlate() {
+        for (let i = 0; i < 8; i++) {
+          const row = document.createElement("div");
+          row.className = "row";
+          for (let j = 0; j < 12; j++) {
+            const well = document.createElement("div");
+            well.className = "well";
+            well.id = `well-${i}-${j}`;
+            row.appendChild(well);
+          }
+          plateElement.appendChild(row);
+        }
+      }
+
+      async function updatePlate() {
+        for (let i = 0; i < 8; i++) {
+          for (let j = 0; j < 12; j++) {
+            const response = await fetch(`/well/${i}/${j}/color`);
+            const data = await response.json();
+            const well = document.getElementById(`well-${i}-${j}`);
+            well.style.backgroundColor = data.color || "#ffffff";
+          }
+        }
+      }
+
+      async function clearPlate() {
+        await fetch("/clear_plate", { method: "POST" });
+        updatePlate();
+      }
+
+      createPlate();
+      updatePlate();
+      setInterval(updatePlate, 100); // Update every second
+    </script>
+  </body>
+</html>

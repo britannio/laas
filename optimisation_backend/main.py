@@ -25,7 +25,7 @@ def well_num_to_x_y(num: int) -> tuple[int, int]:
 
 def convert_hex_to_rgb(hex_str: str) -> List[int]:
     """Converts a hex color code to an RGB list."""
-    return [int(hex_str[i:i+2], 16) for i in (0, 2, 4)]
+    return [int(hex_str[i : i + 2], 16) for i in (0, 2, 4)]
 
 
 class LabManager:
@@ -49,6 +49,15 @@ class LabManager:
         else:
             print(f"Request failed with status code {response.status_code}")
             return "#000000"
+
+    @staticmethod
+    def clear_plate() -> None:
+        url = f"{VIRTUAL_LAB_BASE_URL}/clear_plate"
+        response = requests.get(url)
+        if response.status_code == 200:
+            print("Lab plate cleared.")
+        else:
+            print(f"Request failed with status code {response.status_code}.")
 
 
 @dataclass
@@ -80,7 +89,9 @@ class BackgroundTaskManager:
         experiment.start_time = datetime.now()
         self._action_logs[experiment.experiment_id] = []
 
-        thread = Thread(target=self._run_optimization, args=(optimizer, experiment.experiment_id))
+        thread = Thread(
+            target=self._run_optimization, args=(optimizer, experiment.experiment_id)
+        )
         experiment.process = thread
         thread.start()
         return True
@@ -89,7 +100,10 @@ class BackgroundTaskManager:
         """Runs the optimization process in a background thread."""
         try:
             optimiser_result = optimizer.run()
-            if self._current_experiment and self._current_experiment.status != "cancelled":
+            if (
+                self._current_experiment
+                and self._current_experiment.status != "cancelled"
+            ):
                 self._current_experiment.status = "completed"
                 self._current_experiment.result = optimiser_result
         except Exception:
@@ -118,16 +132,20 @@ class BackgroundTaskManager:
         """Returns the action log for the given experiment_id."""
         return self._action_logs.get(experiment_id)
 
-    def add_action(self, experiment_id: str, action_type: str, data: Dict[str, Any]) -> bool:
+    def add_action(
+        self, experiment_id: str, action_type: str, data: Dict[str, Any]
+    ) -> bool:
         """Adds an action entry to the action log of an experiment."""
         if experiment_id not in self._action_logs:
-            print(f"Warning: Attempted to add action to non-existent experiment {experiment_id}")
+            print(
+                f"Warning: Attempted to add action to non-existent experiment {experiment_id}"
+            )
             return False
         action = {
             "type": action_type,
             "data": data,
             "experiment_id": experiment_id,
-            "timestamp": int(time.time())
+            "timestamp": int(time.time()),
         }
         self._action_logs[experiment_id].append(action)
         return True
@@ -140,9 +158,13 @@ class BackgroundTaskManager:
         return {
             "experiment_id": experiment.experiment_id,
             "status": experiment.status,
-            "start_time": experiment.start_time.isoformat() if experiment.start_time else None,
-            "end_time": experiment.end_time.isoformat() if experiment.end_time else None,
-            "result": experiment.result or None
+            "start_time": (
+                experiment.start_time.isoformat() if experiment.start_time else None
+            ),
+            "end_time": (
+                experiment.end_time.isoformat() if experiment.end_time else None
+            ),
+            "result": experiment.result or None,
         }
 
 
@@ -153,7 +175,7 @@ class BayesOpt:
         n_calls: int,
         experiment_id: str,
         task_manager: BackgroundTaskManager,
-        space: Optional[List[Dimension]] = None
+        space: Optional[List[Dimension]] = None,
     ):
         self.target = target
         self.current_well = 0
@@ -178,7 +200,7 @@ class BayesOpt:
                 "y": y,
                 "well_number": self.current_well,
                 "droplet_counts": [int(p) for p in params],
-            }
+            },
         )
 
         LabManager.add_dyes(x, y, drops=[int(p) for p in params])
@@ -193,11 +215,13 @@ class BayesOpt:
                 "y": y,
                 "well_number": self.current_well,
                 "color": well_color,
-            }
+            },
         )
 
         loss = ((np.array(self.target) - np.array(rgb)) ** 2).mean()
-        print(f"Well {self.current_well}: params={params}, rgb={rgb}, target={self.target}, loss={loss}")
+        print(
+            f"Well {self.current_well}: params={params}, rgb={rgb}, target={self.target}, loss={loss}"
+        )
         time.sleep(DEBUG_DELAY)
         self.current_well += 1
         return loss
@@ -219,27 +243,32 @@ class BayesOpt:
         # After completion, return best result
         best_idx = np.argmin(optimizer.yi)
 
-        print({
-            "x": [int(x) for x in optimizer.Xi[best_idx]],
-            "fun": optimizer.yi[best_idx],
-            "status": "completed"
-        })
+        print(
+            {
+                "x": [int(x) for x in optimizer.Xi[best_idx]],
+                "fun": optimizer.yi[best_idx],
+                "status": "completed",
+            }
+        )
         return {
             # Best state
             "optimal_combo": [int(x) for x in optimizer.Xi[best_idx]],
-            "status": "completed"
+            "status": "completed",
         }
         # return result
 
 
-CORS(app, resources={
-    r"/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "expose_headers": ["Content-Range", "X-Content-Range"]
-    }
-})
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": "*",
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "expose_headers": ["Content-Range", "X-Content-Range"],
+        }
+    },
+)
 
 task_manager = BackgroundTaskManager()
 
@@ -249,9 +278,7 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
     """Starts a Bayesian Optimization experiment with default parameters."""
     print(f"Starting new experiment with ID: {experiment_id}")
     experiment = Experiment(
-        experiment_id=experiment_id,
-        target=(90, 10, 130),
-        n_calls=20
+        experiment_id=experiment_id, target=(90, 10, 130), n_calls=20
     )
 
     bo = BayesOpt(
@@ -259,31 +286,34 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
         n_calls=20,
         experiment_id=experiment_id,
         task_manager=task_manager,
-        space=None
+        space=None,
     )
 
     task_manager.start_experiment(experiment, bo)
 
-    return jsonify({
-        "message": "Optimization started",
-        "experiment_id": experiment_id
-    }), 200
+    return (
+        jsonify({"message": "Optimization started", "experiment_id": experiment_id}),
+        200,
+    )
 
 
-@app.route("/experiments/<experiment_id>/optimize/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["POST"])
-def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_calls: int) -> Response:
+@app.route(
+    "/experiments/<experiment_id>/optimize/<int:r>/<int:g>/<int:b>/<int:n_calls>",
+    methods=["POST"],
+)
+def start_experiment_with_params(
+    experiment_id: str, r: int, g: int, b: int, n_calls: int
+) -> Response:
     """Starts a Bayesian Optimization experiment with specified parameters."""
     experiment = Experiment(
-        experiment_id=experiment_id,
-        target=(r, g, b),
-        n_calls=n_calls
+        experiment_id=experiment_id, target=(r, g, b), n_calls=n_calls
     )
 
     bo = BayesOpt(
         target=(r, g, b),
         n_calls=n_calls,
         experiment_id=experiment_id,
-        task_manager=task_manager
+        task_manager=task_manager,
     )
 
     task_manager.start_experiment(experiment, bo)
