@@ -9,10 +9,11 @@ export function EquipmentPanel({
   onNext,
   onBack,
 }: {
-  onNext: () => void;
+  onNext: (useLLM: boolean) => void;
   onBack: () => void;
 }) {
   const [duration, setDuration] = useState(30); // Default 30 minutes
+  const [useLLM, setUseLLM] = useState(false);
   const equipment = useEquipmentStore((state) => state.equipment);
   const toggleEquipment = useEquipmentStore((state) => state.toggleEquipment);
 
@@ -89,7 +90,7 @@ export function EquipmentPanel({
   return (
     <div className="space-y-4">
       {/* Navigation buttons at the top */}
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <button
           onClick={onBack}
           className={cn(
@@ -99,18 +100,29 @@ export function EquipmentPanel({
         >
           Back
         </button>
-        <button
-          onClick={onNext}
-          disabled={!hasRequiredEquipment}
-          className={cn(
-            "px-4 py-2 rounded-lg font-medium",
-            !hasRequiredEquipment
-              ? "bg-gray-100 text-gray-400"
-              : "bg-blue-600 text-white hover:bg-blue-700",
-          )}
-        >
-          Next
-        </button>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Use LLM</span>
+            <input
+              type="checkbox"
+              checked={useLLM}
+              onChange={(e) => setUseLLM(e.target.checked)}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+            />
+          </label>
+          <button
+            onClick={() => onNext(useLLM)}
+            disabled={!hasRequiredEquipment}
+            className={cn(
+              "px-4 py-2 rounded-lg font-medium",
+              !hasRequiredEquipment
+                ? "bg-gray-100 text-gray-400"
+                : "bg-blue-600 text-white hover:bg-blue-700",
+            )}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* Main content area - Equipment and Cost side by side */}

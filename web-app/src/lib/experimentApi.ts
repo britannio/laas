@@ -84,6 +84,34 @@ export async function getExperimentStatus(experimentId: string): Promise<{
   return response.json();  // Return the parsed JSON directly
 }
 
+export async function startExperimentLLM(
+  experimentId: string,
+  targetColor: string,
+  maxSteps: number = DEFAULT_MAX_STEPS
+): Promise<Response> {
+  // Convert hex color to RGB
+  const hex = targetColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  const response = await fetch(
+    `${API_BASE_URL}/experiments/${experimentId}/optimize_llm/${r}/${g}/${b}/${maxSteps}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to start experiment: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function getExperimentActionLog(
   experimentId: string,
 ): Promise<ActionLogEntry[]> {
