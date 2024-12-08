@@ -40,7 +40,7 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
 
     # Create optimizer with reference to task manager
     bo = BayesOpt(
-        virtualLab,
+        # virtualLab,
         target=[90, 10, 130],
         n_calls=20,
         experiment_id=experiment_id,
@@ -60,7 +60,9 @@ def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]
 @app.route("/experiments/<experiment_id>/optimize/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["POST"])
 def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_calls: int) -> Response:
     """Starts a Bayesian Optimization experiment with specified parameters."""
-    bo = BayesOpt(virtualLab, target=(r, g, b), n_calls=n_calls, experiment_id=experiment_id, space=None)
+    bo = BayesOpt(
+        # virtualLab,
+        target=(r, g, b), n_calls=n_calls, experiment_id=experiment_id, space=None)
     experiment = Experiment(experiment_id=experiment_id, target=(r, g, b), n_calls=n_calls)
 
     task_manager.start_experiment(experiment, bo)
@@ -128,7 +130,7 @@ def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
 if __name__ == "__main__":
     # Initialize multiprocessing support
     freeze_support()
-    
+
     # Initialize the application
     init_app()
 
