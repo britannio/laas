@@ -17,6 +17,8 @@ class VirtualLab:
             [0.0, 0.0, 1.0],  # Dye C - Blue
         ]
 
+        self.noise = 0
+
     def validate_position(self, x: int, y: int) -> bool:
         return 0 <= x < 8 and 0 <= y < 12
 
@@ -28,9 +30,9 @@ class VirtualLab:
         for dye_idx, drop_count in enumerate(drops):
             if drop_count > 0:
                 # Simple color mixing model - each drop contributes proportionally
-                self.plate[x, y] += np.array(self.dyes[dye_idx]) * (
-                    drop_count / sum(drops)
-                )
+                self.plate[x, y] += np.array(
+                    self.dyes[dye_idx] + self.noise * np.random.randn(3)
+                ) * (drop_count / sum(drops))
 
         # Ensure values stay in valid range [0, 1]
         self.plate[x, y] = np.clip(self.plate[x, y], 0, 1)
