@@ -211,15 +211,20 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         throw new Error("No target color specified");
       }
 
+      // Get the configured step count from optimizer
+      const maxSteps = optimizer?.steps || DEFAULT_MAX_STEPS;
+      console.log("Using max steps:", maxSteps);
+
       // Set both state and ref
       setExperimentId(newExperimentId);
       experimentIdRef.current = newExperimentId;
 
-      // Start the experiment with the target color
+      // Start the experiment with the target color and step count
       console.log("Calling startExperiment API...");
       const response = await startExperiment(
         newExperimentId,
-        objective.color  // Pass the target color
+        objective.color,
+        maxSteps  // Pass the configured step count
       );
       console.log("Start experiment response:", response);
 
