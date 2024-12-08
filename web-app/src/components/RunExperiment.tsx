@@ -10,6 +10,7 @@ import {
   startExperiment,
   cancelExperiment,
   getExperimentActionLog,
+  getExperimentStatus,
 } from "@/lib/experimentApi";
 
 interface LogEntry {
