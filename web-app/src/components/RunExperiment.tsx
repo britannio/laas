@@ -6,6 +6,7 @@ import { useExperimentStore } from "../stores/experimentStore";
 import { useEquipmentStore } from "../stores/equipmentStore";
 import { cn } from "../lib/utils";
 import { v4 as uuidv4 } from "uuid";
+import { equipmentCosts } from "@/lib/costs";
 import {
   startExperiment,
   cancelExperiment,
@@ -23,6 +24,20 @@ interface LogEntry {
 }
 
 export function RunExperiment({ onBack }: { onBack: () => void }) {
+  const calculateExperimentCost = useCallback((elapsedSeconds: number, selectedEquipment: string[]) => {
+    let totalCost = 0;
+    
+    // Add setup costs for each piece of equipment
+    selectedEquipment.forEach(equipmentType => {
+      if (equipmentCosts[equipmentType]) {
+        totalCost += equipmentCosts[equipmentType].setupCost;
+        // Add time-based costs (convert seconds to minutes)
+        totalCost += (equipmentCosts[equipmentType].perMinuteCost * (elapsedSeconds / 60));
+      }
+    });
+
+    return totalCost.toFixed(2);
+  }, []);
   const [isRunning, setIsRunning] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -310,12 +325,44 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Right column - Action Log */}
-        <div className="h-full overflow-hidden">
-          <ActionLog 
-            entries={actionLog} 
-            elapsedTime={elapsedTime}
-            optimalCombo={optimalCombo}
-          />
+        <div className="h-full overflow-hidden flex flex-col">
+          <div className="grid grid-cols-2 gap-4 p-4">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="text-sm text-gray-500">Time Elapsed</div>
+              <div className="text-xl font-semibold">
+                {new Date(elapsedTime * 1000).toISOString().substr(11, 8)}
+              </div>
+            </div>
+            
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="text-sm text-gray-500">Steps Completed</div>
+              <div className="text-xl font-semibold">
+                {actionLog.filter(entry => entry.type === "place_droplets").length}
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="text-sm text-gray-500">Optimal Combination</div>
+              <div className="text-xl font-semibold">
+                {optimalCombo ? `${optimalCombo.join(', ')}` : '-'}
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="text-sm text-gray-500">Experiment Cost</div>
+              <div className="text-xl font-semibold">
+                £{calculateExperimentCost(elapsedTime, Object.keys(equipment))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <ActionLog 
+              entries={actionLog} 
+              elapsedTime={elapsedTime}
+              optimalCombo={optimalCombo}
+            />
+          </div>
         </div>
       </div>
     </div>
