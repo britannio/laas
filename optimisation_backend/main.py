@@ -1,37 +1,42 @@
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
 from typing import Union, Tuple, Optional, Dict, List, Any
-from multiprocessing import freeze_support, Process
 from dataclasses import dataclass
 from datetime import datetime
 import numpy as np
-from skopt import gp_minimize
+from skopt import Optimizer
 from skopt.space import Integer, Dimension
 import time
 import requests
+from threading import Thread
+import traceback
 
 # Constants
 VIRTUAL_LAB_BASE_URL = "http://127.0.0.1:5000"
+DEBUG_DELAY = 0.3
 
 app = Flask(__name__)
 
+
 def well_num_to_x_y(num: int) -> tuple[int, int]:
-    """Converts a well number to x, y coordinates."""
+    """Converts a 96 well number to (x, y) coordinates."""
     return num // 12, num % 12
 
-def convert_hex_to_rgb(hex: str) -> list[int]:
+
+def convert_hex_to_rgb(hex_str: str) -> List[int]:
     """Converts a hex color code to an RGB list."""
-    return list(int(hex[i : i + 2], 16) for i in (0, 2, 4))
+    return [int(hex_str[i:i+2], 16) for i in (0, 2, 4)]
+
 
 class LabManager:
     @staticmethod
-    def add_dyes(well_x: int, well_y: int, drops: list[int]) -> None:
+    def add_dyes(well_x: int, well_y: int, drops: List[int]) -> None:
         url = f"{VIRTUAL_LAB_BASE_URL}/well/{well_x}/{well_y}/add_dyes"
         headers = {"Content-Type": "application/json"}
         data = {"drops": drops}
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 200:
-            print(response.json())
+            print("Dyes added:", response.json())
         else:
             print(f"Request failed with status code {response.status_code}")
 
@@ -40,10 +45,11 @@ class LabManager:
         url = f"{VIRTUAL_LAB_BASE_URL}/well/{well_x}/{well_y}/color"
         response = requests.get(url)
         if response.status_code == 200:
-            print(response.json())
+            return response.json()["color"]
         else:
             print(f"Request failed with status code {response.status_code}")
-        return response.json()["color"]
+            return "#000000"
+
 
 @dataclass
 class Experiment:
@@ -53,8 +59,10 @@ class Experiment:
     status: str = "pending"
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    optimizer = None
-    process: Optional[Process] = None
+    optimizer: Any = None
+    process: Optional[Thread] = None
+    result: Optional[Dict[str, Any]] = None
+
 
 class BackgroundTaskManager:
     def __init__(self):
@@ -62,46 +70,56 @@ class BackgroundTaskManager:
         self._experiments: Dict[str, Experiment] = {}
         self._action_logs: Dict[str, List[Dict[str, Any]]] = {}
 
-    def start_experiment(self, experiment: Experiment, optimizer) -> bool:
+    def start_experiment(self, experiment: Experiment, optimizer: Any) -> bool:
+        """Starts a new experiment in a background thread."""
         self.cancel_current_experiment()
         self._current_experiment = experiment
         self._experiments[experiment.experiment_id] = experiment
-        self._current_experiment.optimizer = optimizer
-        self._current_experiment.status = "running"
-        self._current_experiment.start_time = datetime.now()
+        experiment.optimizer = optimizer
+        experiment.status = "running"
+        experiment.start_time = datetime.now()
         self._action_logs[experiment.experiment_id] = []
-        process = Process(target=self._run_optimization, args=(optimizer,))
-        self._current_experiment.process = process
-        process.start()
+
+        thread = Thread(target=self._run_optimization, args=(optimizer, experiment.experiment_id))
+        experiment.process = thread
+        thread.start()
         return True
 
-    def _run_optimization(self, optimizer):
+    def _run_optimization(self, optimizer: Any, experiment_id: str):
+        """Runs the optimization process in a background thread."""
         try:
-            result = optimizer.run()
-            self._current_experiment.status = "completed"
-        except Exception as e:
-            self._current_experiment.status = "failed"
-            print(f"Optimization failed: {e}")
+            optimiser_result = optimizer.run()
+            if self._current_experiment and self._current_experiment.status != "cancelled":
+                self._current_experiment.status = "completed"
+                self._current_experiment.result = optimiser_result
+        except Exception:
+            if self._current_experiment:
+                self._current_experiment.status = "failed"
+            print(f"Optimization failed: {traceback.format_exc()}")
         finally:
-            self._current_experiment.end_time = datetime.now()
+            if self._current_experiment:
+                self._current_experiment.end_time = datetime.now()
 
     def cancel_current_experiment(self) -> bool:
+        """Attempts to cancel the current experiment if it's running."""
         if not self._current_experiment:
-            return False
-        if self._current_experiment.process and self._current_experiment.process.is_alive():
-            self._current_experiment.process.terminate()
-            self._current_experiment.process.join(timeout=1.0)
-            if self._current_experiment.process.is_alive():
-                self._current_experiment.process.kill()
-                self._current_experiment.process.join()
-        self._current_experiment.status = "cancelled"
-        self._current_experiment.end_time = datetime.now()
+            return True
+        experiment = self._current_experiment
+        experiment.status = "cancelled"
+        experiment.end_time = datetime.now()
         return True
 
+    def is_cancelled(self, experiment_id: str) -> bool:
+        """Check if the given experiment is cancelled."""
+        experiment = self._experiments.get(experiment_id)
+        return experiment is not None and experiment.status == "cancelled"
+
     def get_action_log(self, experiment_id: str) -> Optional[List[Dict[str, Any]]]:
+        """Returns the action log for the given experiment_id."""
         return self._action_logs.get(experiment_id)
 
     def add_action(self, experiment_id: str, action_type: str, data: Dict[str, Any]) -> bool:
+        """Adds an action entry to the action log of an experiment."""
         if experiment_id not in self._action_logs:
             print(f"Warning: Attempted to add action to non-existent experiment {experiment_id}")
             return False
@@ -109,24 +127,34 @@ class BackgroundTaskManager:
             "type": action_type,
             "data": data,
             "experiment_id": experiment_id,
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "timestamp": int(time.time())
         }
         self._action_logs[experiment_id].append(action)
         return True
 
-    def get_experiment_status(self, experiment_id: str) -> Optional[Dict]:
-        if not self._current_experiment or self._current_experiment.experiment_id != experiment_id:
+    def get_experiment_status(self, experiment_id: str) -> Optional[Dict[str, Any]]:
+        """Returns a dictionary describing the status of the specified experiment."""
+        experiment = self._experiments.get(experiment_id)
+        if not experiment:
             return None
         return {
-            "experiment_id": self._current_experiment.experiment_id,
-            "status": self._current_experiment.status,
-            "start_time": self._current_experiment.start_time.isoformat() if self._current_experiment.start_time else None,
-            "end_time": self._current_experiment.end_time.isoformat() if self._current_experiment.end_time else None,
+            "experiment_id": experiment.experiment_id,
+            "status": experiment.status,
+            "start_time": experiment.start_time.isoformat() if experiment.start_time else None,
+            "end_time": experiment.end_time.isoformat() if experiment.end_time else None,
+            "result": experiment.result or None
         }
 
+
 class BayesOpt:
-    def __init__(self, target: list[int], n_calls: int, experiment_id: str,
-                 task_manager: BackgroundTaskManager, space: list[Dimension] | None = None):
+    def __init__(
+        self,
+        target: tuple[int, int, int],
+        n_calls: int,
+        experiment_id: str,
+        task_manager: BackgroundTaskManager,
+        space: Optional[List[Dimension]] = None
+    ):
         self.target = target
         self.current_well = 0
         self.n_calls = n_calls
@@ -139,7 +167,7 @@ class BayesOpt:
         self.experiment_id = experiment_id
         self.task_manager = task_manager
 
-    def objective_function(self, params: list[int]) -> float:
+    def objective_function(self, params: List[int]) -> float:
         x, y = well_num_to_x_y(self.current_well)
 
         self.task_manager.add_action(
@@ -148,13 +176,12 @@ class BayesOpt:
             {
                 "x": x,
                 "y": y,
-                "timestamp": time.time(),
                 "well_number": self.current_well,
-                "droplet_counts": [int(x) for x in params],
+                "droplet_counts": [int(p) for p in params],
             }
         )
 
-        LabManager.add_dyes(x, y, drops=[int(x) for x in params])
+        LabManager.add_dyes(x, y, drops=[int(p) for p in params])
         well_color = LabManager.get_well_color(x, y)
         rgb = convert_hex_to_rgb(well_color[1:])
 
@@ -164,7 +191,6 @@ class BayesOpt:
             {
                 "x": x,
                 "y": y,
-                "timestamp": time.time(),
                 "well_number": self.current_well,
                 "color": well_color,
             }
@@ -172,17 +198,40 @@ class BayesOpt:
 
         loss = ((np.array(self.target) - np.array(rgb)) ** 2).mean()
         print(f"Well {self.current_well}: params={params}, rgb={rgb}, target={self.target}, loss={loss}")
-        time.sleep(0.5)
+        time.sleep(DEBUG_DELAY)
         self.current_well += 1
         return loss
 
-    def run(self) -> dict:
-        return gp_minimize(
-            self.objective_function,
-            self.space,
-            n_calls=self.n_calls,
-            random_state=self.random_state,
-        )
+    def run(self) -> Dict[str, Any]:
+        """Run the Bayesian Optimization in an iterative manner to allow cancellation."""
+        optimizer = Optimizer(dimensions=self.space, random_state=self.random_state)
+
+        for i in range(self.n_calls):
+            # Check if experiment is cancelled before each iteration
+            if self.task_manager.is_cancelled(self.experiment_id):
+                print("Experiment cancelled at iteration", i)
+                return {"status": "cancelled", "iteration": i}
+
+            x = optimizer.ask()
+            loss = self.objective_function(x)
+            optimizer.tell(x, loss)
+
+        # After completion, return best result
+        best_idx = np.argmin(optimizer.yi)
+
+        print({
+            "x": [int(x) for x in optimizer.Xi[best_idx]],
+            "fun": optimizer.yi[best_idx],
+            "status": "completed"
+        })
+        return {
+            # Best state
+            "optimal_combo": [int(x) for x in optimizer.Xi[best_idx]],
+            "status": "completed"
+        }
+        # return result
+
+
 CORS(app, resources={
     r"/*": {
         "origins": "*",
@@ -199,40 +248,43 @@ task_manager = BackgroundTaskManager()
 def start_experiment(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
     """Starts a Bayesian Optimization experiment with default parameters."""
     print(f"Starting new experiment with ID: {experiment_id}")
-
-    # Create experiment instance first
     experiment = Experiment(
         experiment_id=experiment_id,
         target=(90, 10, 130),
         n_calls=20
     )
 
-    # Create optimizer with reference to task manager
     bo = BayesOpt(
-        # virtualLab,
-        target=[90, 10, 130],
+        target=(90, 10, 130),
         n_calls=20,
         experiment_id=experiment_id,
         task_manager=task_manager,
         space=None
     )
 
-    print('Starting experiment in background')
     task_manager.start_experiment(experiment, bo)
-    print('Experiment started')
 
     return jsonify({
         "message": "Optimization started",
         "experiment_id": experiment_id
     }), 200
 
+
 @app.route("/experiments/<experiment_id>/optimize/<int:r>/<int:g>/<int:b>/<int:n_calls>", methods=["POST"])
 def start_experiment_with_params(experiment_id: str, r: int, g: int, b: int, n_calls: int) -> Response:
     """Starts a Bayesian Optimization experiment with specified parameters."""
+    experiment = Experiment(
+        experiment_id=experiment_id,
+        target=(r, g, b),
+        n_calls=n_calls
+    )
+
     bo = BayesOpt(
-        # virtualLab,
-        target=(r, g, b), n_calls=n_calls, experiment_id=experiment_id, space=None)
-    experiment = Experiment(experiment_id=experiment_id, target=(r, g, b), n_calls=n_calls)
+        target=(r, g, b),
+        n_calls=n_calls,
+        experiment_id=experiment_id,
+        task_manager=task_manager
+    )
 
     task_manager.start_experiment(experiment, bo)
     return jsonify({"message": "Optimization started", "experiment_id": experiment_id})
@@ -249,35 +301,7 @@ def get_action_log(experiment_id: str) -> Union[Response, Tuple[Response, int]]:
         return jsonify({"error": "Experiment not found"}), 404
 
     print(f"Found action log with {len(action_log)} entries")
-    print(action_log)
-    return jsonify(action_log)
-
-
-@app.route("/well_color/<int:x>/<int:y>", methods=["GET"])
-def get_well_color(x: int, y: int) -> Union[Response, Tuple[Response, int]]:
-    """Endpoint to get the color of a well given its x, y coordinates.
-
-    Args:
-        x (int): The row index.
-        y (int): The column index.
-
-    Returns:
-        Response: A JSON response containing the color of the well or an error message.
-    """
-    color = virtualLab.get_well_color(x, y)
-    if color is None:
-        return jsonify({"error": "Invalid well coordinates"}), 400
-    return jsonify({"color": color})
-
-
-# @app.route("/status", methods=["GET"])
-# def get_experiment_status() -> Response:
-#     """Endpoint to get the experiment status from the model.
-
-#     Returns:
-#         Response: A JSON response containing the experiment status.
-#     """
-#     return jsonify({"experiment_status": model.experiment_completeness_ratio})
+    return jsonify(action_log), 200
 
 
 @app.route("/experiments/<experiment_id>/status", methods=["GET"])
@@ -288,23 +312,16 @@ def get_experiment_status(experiment_id: str) -> Union[Response, Tuple[Response,
         return jsonify({"error": "Experiment not found"}), 404
     return jsonify(status)
 
+
 @app.route("/cancel_experiment", methods=["POST"])
 def cancel_experiment() -> Union[Response, Tuple[Response, int]]:
+    """Endpoint to cancel the currently running experiment."""
+    result = task_manager.cancel_current_experiment()
+    if result:
+        return jsonify({"message": "Experiment cancelled successfully"}), 200
+    else:
+        return jsonify({"error": "No running experiment to cancel"}), 400
 
-    task_manager.cancel_current_experiment()
-    return jsonify({"message": "Experiment cancelled successfully"})
-    # else:
-        # return jsonify({"error": "No running experiment to cancel"}), 400
 
 if __name__ == "__main__":
-    # Initialize multiprocessing support
-    freeze_support()
-
-    # Initialize the application
-    # init_app()
-
-    # Run the Flask app
     app.run(debug=True, port=5001)
-# else:
-    # Initialize for when running from a WSGI server
-    # init_app()
