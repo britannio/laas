@@ -28,7 +28,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [actionLog, setActionLog] = useState<LogEntry[]>([]);
   const [experimentId, setExperimentId] = useState<string | null>(null);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(
+    null,
+  );
 
   const wells = useExperimentStore((state) => state.wells);
   const setWellColor = useExperimentStore((state) => state.setWellColor);
@@ -82,31 +84,31 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const pollExperimentStatus = useCallback(async () => {
     const currentExperimentId = experimentIdRef.current;
     if (!currentExperimentId) {
-      console.log('No experimentId available, skipping poll');
+      console.log("No experimentId available, skipping poll");
       return;
     }
-    
-    console.log('=== Starting Poll ===');
-    console.log('Polling for experiment:', currentExperimentId);
-    
+
+    console.log("=== Starting Poll ===");
+    console.log("Polling for experiment:", currentExperimentId);
+
     try {
       // First try to get status
-      console.log('Fetching status...');
+      console.log("Fetching status...");
       const status = await getExperimentStatus(currentExperimentId);
-      console.log('Status response:', status);
-      
+      console.log("Status response:", status);
+
       // Then try to get log entries
-      console.log('Fetching action log...');
+      console.log("Fetching action log...");
       const logEntries = await getExperimentActionLog(currentExperimentId);
-      console.log('Log entries response:', logEntries);
-      
+      console.log("Log entries response:", logEntries);
+
       if (!Array.isArray(logEntries)) {
-        console.warn('Received non-array log entries:', logEntries);
+        console.warn("Received non-array log entries:", logEntries);
         return;
       }
 
       const formattedLog: LogEntry[] = logEntries.map((entry) => {
-        console.log('Processing log entry:', entry);
+        console.log("Processing log entry:", entry);
         return {
           timestamp: new Date(entry.timestamp * 1000),
           type: entry.type === "place" ? "place_droplets" : "get_color",
@@ -116,31 +118,33 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         };
       });
 
-      console.log('Setting formatted log:', formattedLog);
+      console.log("Setting formatted log:", formattedLog);
       setActionLog(formattedLog);
 
-      if (status.status === 'completed') {
-        console.log('Experiment completed, cleaning up');
+      if (status.status === "completed") {
+        console.log("Experiment completed, cleaning up");
         if (pollingInterval) {
-          console.log('Clearing interval:', pollingInterval);
+          console.log("Clearing interval:", pollingInterval);
           clearInterval(pollingInterval);
           setPollingInterval(null);
         }
         setIsRunning(false);
+      } else {
+        console.log("Experiment still running");
       }
-      
-      console.log('=== Poll Complete ===');
+
+      console.log("=== Poll Complete ===");
     } catch (error) {
-      console.error('=== Poll Error ===');
-      console.error('Error details:', {
+      console.error("=== Poll Error ===");
+      console.error("Error details:", {
         name: error.name,
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
-      
+
       // If we get a 404 or similar, we might want to stop polling
-      if (error.message.includes('404')) {
-        console.log('Received 404, stopping poll');
+      if (error.message.includes("404")) {
+        console.log("Received 404, stopping poll");
         if (pollingInterval) {
           clearInterval(pollingInterval);
           setPollingInterval(null);
@@ -156,13 +160,13 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
         console.log("Sending cancel request");
         await cancelExperiment();
         console.log("Cancel request successful");
-        
+
         // Clear polling interval
         if (pollingInterval) {
           clearInterval(pollingInterval);
           setPollingInterval(null);
         }
-        
+
         setIsRunning(false);
         setStartTime(null);
         setElapsedTime(0);
@@ -186,35 +190,35 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
   const handleStartExperiment = async () => {
     try {
       const newExperimentId = uuidv4();
-      console.log('=== Starting New Experiment ===');
-      console.log('Generated ID:', newExperimentId);
-      
+      console.log("=== Starting New Experiment ===");
+      console.log("Generated ID:", newExperimentId);
+
       // Set both state and ref
       setExperimentId(newExperimentId);
       experimentIdRef.current = newExperimentId;
-      
+
       // Start the experiment
-      console.log('Calling startExperiment API...');
+      console.log("Calling startExperiment API...");
       const response = await startExperiment(newExperimentId);
-      console.log('Start experiment response:', response);
-      
+      console.log("Start experiment response:", response);
+
       // Update state
       setIsRunning(true);
       setStartTime(new Date());
       setActionLog([]);
 
       // Start polling
-      console.log('Initializing polling...');
+      console.log("Initializing polling...");
       await pollExperimentStatus(); // Initial poll
-      
-      console.log('Setting up polling interval...');
+
+      console.log("Setting up polling interval...");
       const interval = setInterval(() => {
-        console.log('Polling interval triggered');
+        console.log("Polling interval triggered");
         pollExperimentStatus();
       }, 1000);
-      
+
       setPollingInterval(interval);
-      console.log('Polling interval set:', interval);
+      console.log("Polling interval set:", interval);
     } catch (error) {
       console.error("Failed to start experiment:", error);
       alert("Failed to start experiment. Please try again.");
@@ -274,13 +278,17 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
 
                   // Guard against undefined/null response
                   if (!Array.isArray(logEntries)) {
-                    console.error("Unexpected API response format:", logEntries);
+                    console.error(
+                      "Unexpected API response format:",
+                      logEntries,
+                    );
                     return;
                   }
 
                   const formattedLog: LogEntry[] = logEntries.map((entry) => ({
                     timestamp: new Date(entry.timestamp * 1000),
-                    type: entry.type === "place" ? "place_droplets" : "get_color",
+                    type:
+                      entry.type === "place" ? "place_droplets" : "get_color",
                     position: { x: entry.data.x, y: entry.data.y },
                     drops:
                       entry.type === "place"
@@ -293,7 +301,9 @@ export function RunExperiment({ onBack }: { onBack: () => void }) {
                   setActionLog(formattedLog);
                 } catch (error) {
                   console.error("Failed to fetch action log:", error);
-                  alert("Failed to fetch action log. Check console for details.");
+                  alert(
+                    "Failed to fetch action log. Check console for details.",
+                  );
                 }
               }}
               className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200"
