@@ -9,6 +9,7 @@ interface ExperimentState {
   addStep: (step: Omit<ExperimentStep, 'id'>) => void;
   updateWell: (x: number, y: number, data: WellData) => void;
   setActiveWell: (x: number, y: number | null) => void;
+  setWellColor: (x: number, y: number, color: string) => void;
 }
 
 export const useExperimentStore = create<ExperimentState>()((set) => ({
@@ -31,5 +32,15 @@ export const useExperimentStore = create<ExperimentState>()((set) => ({
       }
     })),
   setActiveWell: (x, y) =>
-    set({ activeWell: y === null ? null : { x, y } })
+    set({ activeWell: y === null ? null : { x, y } }),
+  setWellColor: (x: number, y: number, color: string) =>
+    set((state) => ({
+      wells: {
+        ...state.wells,
+        [`${x},${y}`]: {
+          ...state.wells[`${x},${y}`] || {},
+          color
+        }
+      }
+    }))
 }));

@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import { cn } from '@/lib/utils';
-import type { WellData } from '@/types/experiment';
+import { memo } from "react";
+import { cn } from "@/lib/utils";
+import type { WellData } from "@/types/experiment";
 
 interface WellPlateProps {
   wells: Record<string, WellData>;
@@ -41,23 +41,23 @@ export const WellPlate = memo(({ wells, onWellClick }: WellPlateProps) => {
                 key={wellKey}
                 onClick={() => onWellClick?.(col, row)}
                 className={cn(
-                  'aspect-square rounded-full transition-all',
-                  'border-2',
-                  isOccupied 
-                    ? 'border-gray-400 hover:border-gray-600' 
-                    : 'border-gray-300 hover:border-gray-400',
-                  'hover:scale-105'
+                  "aspect-square rounded-full transition-all",
+                  "border-2",
+                  isOccupied
+                    ? "border-gray-900 hover:border-gray-600"
+                    : "border-gray-300 hover:border-gray-400",
+                  "hover:scale-105",
                 )}
                 style={{
-                  backgroundColor: well?.color || 'transparent',
+                  backgroundColor: well?.color || "transparent",
                 }}
               />
             );
-          })
+          }),
         )}
       </div>
     </div>
   );
 });
 
-WellPlate.displayName = 'WellPlate';
+WellPlate.displayName = "WellPlate";
